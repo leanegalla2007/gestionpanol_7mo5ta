@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión Pañol - Preceptoría</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container my-5">
+        <h1 class="text-center mb-4">⚙️ Gestión de Pañol - Preceptoría</h1>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">Agregar Nuevo Elemento</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="form-elemento">
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">Nombre del Objeto</label>
+                                <input type="text" id="nombre" class="form-control" placeholder="Ej: Proyector Epson X05" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="categoria" class="form-label">Categoría</label>
+                                <select id="categoria" class="form-select" required>
+                                    <option value="" selected disabled>Seleccionar...</option>
+                                    <option value="Tecnología">Tecnología</option>
+                                    <option value="Útiles">Útiles</option>
+                                    <option value="Mapas">Mapas</option>
+                                    <option value="Otros">Otros</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">Cargar al Stock</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Inventario en Base de Datos</h5>
+                        <button id="btn-cargar" class="btn btn-sm btn-outline-light">🔄 Actualizar</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-elementos">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">Cargando elementos...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api/elementos';
+
+        // 1. FUNCIÓN PARA OBTENER LAS ROWS DESDE EL BACKEND Y MOSTRARLAS
+        async function cargarInventario() {
+            const tabla = document.getElementById('tabla-elementos');
+            try {
+                const respuesta = await fetch(API_URL);
+                const elementos = await respuesta.json(); // Se transforma el JSON en el array de objetos rows
+
+                tabla.innerHTML = ''; // Limpiamos el texto de carga
+
+                if (elementos.length === 0) {
+                    tabla.innerHTML = `<tr><td colspan="4" class="text-center">No hay elementos cargados todavía.</td></tr>`;
+                    return;
+                }
+
+                // Recorremos cada row y la inyectamos en la tabla HTML
+                elementos.forEach(item => {
+                    const badgeColor = item.estado === 'Disponible' ? 'bg-success' : 'bg-warning';
+                    tabla.innerHTML += `
+                        <tr>
+                            <td>${item.id}</td>
+                            <td><strong>${item.nombre}</strong></td>
+                            <td>${item.categoria}</td>
+                            <td><span class="badge ${badgeColor}">${item.estado}</span></td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                console.error(error);
+                tabla.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Error al conectar con la API.</td></tr>`;
+            }
+        }
+
+        // 2. LOGICA PARA ENVIAR UN ELEMENTO NUEVO (POST)
+        document.getElementById('form-elemento').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evitamos que la página se recargue
+
+            const nombre = document.getElementById('nombre').value;
+            const categoria = document.getElementById('categoria').value;
+
+            try {
+                const respuesta = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, categoria }) // Enviamos los datos empaquetados en JSON
+                });
+
+                if (respuesta.ok) {
+                    alert('¡Elemento cargado con éxito!');
+                    document.getElementById('form-elemento').reset(); // Limpiamos el formulario
+                    cargarInventario(); // Recargamos la tabla para ver el cambio reflejado en tiempo real
+                } else {
+                    const errorData = await respuesta.json();
+                    alert('Error: ' + errorData.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('No se pudo enviar el elemento al servidor.');
+            }
+        });
+
+        // Escuchar el botón manual de actualizar
+        document.getElementById('btn-cargar').addEventListener('click', cargarInventario);
+
+        // Ejecutar de forma automática cuando carga la página por primera vez
+        window.addEventListener('DOMContentLoaded', cargarInventario);
+    </script>
+</body>
+</html>
