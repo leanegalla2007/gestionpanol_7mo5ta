@@ -9,18 +9,15 @@
 <body class="bg-light">
 
     <div class="container-fluid px-5 my-5">
-        <a href="/" class="btn btn-outline-secondary mb-3">⬅️ Volver al Menú Principal</a>
-        <h1 class="text-center mb-4">⚙️ Gestión de Pañol - Preceptoría</h1>
+        <a href="/" class="btn btn-outline-secondary mb-3">Volver al Menú Principal</a>
+        <h1 class="text-center mb-4">Gestión de Pañol - Preceptoría</h1>
         
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="text-secondary mb-0">Inventario Completo</h4>
             <div>
-                <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalElemento">
-                    ➕ Cargar Nuevo Elemento
-                </button>
-                <button type="button" class="btn btn-primary" onclick="cargarInventario()">
-                    🔄 Actualizar Stock
-                </button>
+                <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalElemento">Cargar Nuevo Elemento</button>
+                
+                <button type="button" class="btn btn-primary" onclick="cargarInventario()">Actualizar Stock</button>
             </div>
         </div>
 
@@ -64,7 +61,7 @@
                         <div class="mb-3">
                             <label for="categoria" class="form-label">Categoría</label>
                             <select id="categoria" class="form-select" required>
-                                <option value="" selected disabled>Seleccionar...</option>
+                                <option value="" selected disabled>Seleccionar categoria...</option>
                                 <option value="Tecnología">Tecnología</option>
                                 <option value="Útiles">Útiles</option>
                                 <option value="Mapas">Mapas</option>
@@ -92,7 +89,7 @@
 
         // 1. FUNCIÓN PARA OBTENER LAS ROWS Y REDIBUJAR LA TABLA ANCHA
         async function cargarInventario() {
-            console.log("¡El botón de actualizar funciona y llamó a la función!");
+            console.log("El botón de actualizar funciona y llamó a la función");
             const tabla = document.getElementById('tabla-elementos');
             try {
                 tabla.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Actualizando inventario...</td></tr>`;
@@ -143,7 +140,7 @@
                 });
 
                 if (respuesta.ok) {
-                    alert('¡Elemento cargado con éxito!');
+                    alert('Elemento cargado con éxito');
                     document.getElementById('form-elemento').reset();
                     
                     // Truco: Cerramos la ventana flotante automáticamente después de guardar

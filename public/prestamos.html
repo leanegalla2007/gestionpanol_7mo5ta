@@ -126,7 +126,7 @@
                 tabla.innerHTML = '';
 
                 if (datos.length === 0) {
-                    tabla.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">🙌 ¡No hay ningún elemento afuera! Todo está en el pañol.</td></tr>`;
+                    tabla.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No hay ningún elemento afuera. Todo está en el pañol.</td></tr>`;
                     return;
                 }
 
@@ -199,7 +199,7 @@
                 const docentes = await resDoc.json();
                 selectDocente.innerHTML = '<option value="" selected disabled>Seleccioná el docente...</option>';
                 docentes.forEach(d => {
-                    selectDocente.innerHTML += `<option value="${d.id}">${d.apellido}, ${d.nombre} (DNI: ${d.dni})</option>`;
+                    selectDocente.innerHTML += `<option value="${d.id}">${d.apellido}, ${d.nombre}, (DNI: ${d.dni}) ${d.turnos}</option>`;
                 });
 
                 // Traer Elementos

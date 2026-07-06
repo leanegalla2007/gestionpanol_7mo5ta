@@ -5,7 +5,7 @@ class Docente {
     // Obtener todos los docentes
     static async getAll() {
         try {
-            const [rows] = await db.query('SELECT * FROM docentes ORDER BY apellido, nombre');
+            const [rows] = await db.query('SELECT * FROM docentes ORDER BY apellido, nombre, dni, turno');
             return rows;
         } catch (error) {
             throw new Error('Error al obtener los docentes: ' + error.message);
