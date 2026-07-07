@@ -104,9 +104,10 @@
 
                     fila.innerHTML = `
                     <td>${docentes.id}</td>
-                    <td><strong>${docentes.apellido}, ${docentes.nombre}</strong></td>
+                    <td><strong>${docentes.apellido}</strong></td> 
+                    <td><strong>${docentes.nombre}</strong></td>
                     <td>${docentes.dni}</td>
-                    <td><span class="badge bd-info">${docentes.turno}</span></td>
+                    <td><span>${docentes.turno}</span></td>
                     `
                     tabla.appendChild(fila);
                 });

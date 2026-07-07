@@ -9,6 +9,7 @@ const prestamoController = {
             const activos = await Prestamo.getAllActivos();
             res.status(200).json(activos);
         } catch (error) {
+            console.error("no se pudo conectar", error.message);
             res.status(500).json({ error: error.message });
         }
     },
@@ -26,23 +27,23 @@ const prestamoController = {
     // Acción de Prestar un elemento
     crearPrestamo: async (req, res) => {
         try {
-            const { docente_id, elemento_id, observaciones } = req.body;
+            const { id_docente, id_elemento, observaciones } = req.body;
 
             if (!docente_id || !elemento_id) {
                 return res.status(400).json({ message: 'Docente y Elemento son requeridos.' });
             }
 
             // 1. Verificar si el elemento está disponible
-            const elemento = await Elemento.getById(elemento_id);
+            const elemento = await Elemento.getById(id_elemento);
             if (!elemento || elemento.estado !== 'Disponible') {
                 return res.status(400).json({ message: 'El elemento no está disponible para préstamo.' });
             }
 
             // 2. Crear el registro del préstamo
-            await Prestamo.create(docente_id, elemento_id, observaciones);
+            await Prestamo.create(id_docente, id_elemento, observaciones);
 
             // 3. Cambiar el estado del elemento a 'Prestado'
-            await Elemento.updateEstado(elemento_id, 'Prestado');
+            await Elemento.updateEstado(id_elemento, 'Prestado');
 
             res.status(201).json({ message: 'Préstamo registrado con éxito.' });
         } catch (error) {

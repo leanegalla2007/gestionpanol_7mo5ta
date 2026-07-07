@@ -6,7 +6,7 @@ class Prestamo {
     static async getAllActivos() {
         try {
             const sql = `
-                SELECT p.id, p.fechayhora_salida, p.observacion, p.estado,
+                SELECT p.id, p.fechayhora_salida, p.observaciones, p.estado,
                        d.nombre AS docente_nombre, d.apellido AS docente_apellido,
                        e.nombre AS elemento_nombre, e.categoria AS elemento_categoria
                 FROM prestamos p
@@ -25,13 +25,13 @@ class Prestamo {
     static async getHistorial() {
         try {
             const sql = `
-                SELECT p.id, p.fechayhora_salida, p.fechayhora_devolucion, p.estado, p.observacion,
+                SELECT p.id, p.fechayhora_salida, p.fechayhora_devolucion, p.estado, p.observaciones,
                        d.nombre AS docente_nombre, d.apellido AS docente_apellido,
                        e.nombre AS elemento_nombre
                 FROM prestamos p
                 JOIN docentes d ON p.id_docente = d.id
                 JOIN elementos e ON p.elemento_id = e.id
-                ORDER BY p.fecha_salida DESC`;
+                ORDER BY p.fechayhora_salida DESC`;
             const [rows] = await db.query(sql);
             return rows;
         } catch (error) {
@@ -40,10 +40,10 @@ class Prestamo {
     }
 
     // 3. Registrar un nuevo préstamo
-    static async create(id_docente, id_elemento, observacion = '') {
+    static async create(id_docente, id_elemento, observaciones = '') {
         try {
             const sql = 'INSERT INTO prestamos (id_docente, id_elemento, observacion, estado) VALUES (?, ?, ?, Activo)';
-            const [result] = await db.query(sql, [id_docente, id_elemento, observacion]);
+            const [result] = await db.query(sql, [id_docente, id_elemento, observaciones]);
             return result.insertId;
         } catch (error) {
             throw new Error('Error al registrar préstamo: ' + error.message);
