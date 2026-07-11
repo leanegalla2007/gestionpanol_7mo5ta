@@ -27,23 +27,23 @@ const prestamoController = {
     // Acción de Prestar un elemento
     crearPrestamo: async (req, res) => {
         try {
-            const { id_docente, id_elemento, observaciones } = req.body;
+            const { id_docentes, id_elementos, observaciones } = req.body;
 
-            if (!docente_id || !elemento_id) {
+            if (!id_docentes || !id_elementos) {
                 return res.status(400).json({ message: 'Docente y Elemento son requeridos.' });
             }
 
             // 1. Verificar si el elemento está disponible
-            const elemento = await Elemento.getById(id_elemento);
+            const elemento = await Elemento.getById(id_elementos);
             if (!elemento || elemento.estado !== 'Disponible') {
                 return res.status(400).json({ message: 'El elemento no está disponible para préstamo.' });
             }
 
             // 2. Crear el registro del préstamo
-            await Prestamo.create(id_docente, id_elemento, observaciones);
+            await Prestamo.create({ id_docentes, id_elementos, observaciones });
 
             // 3. Cambiar el estado del elemento a 'Prestado'
-            await Elemento.updateEstado(id_elemento, 'Prestado');
+            await Elemento.updateEstado(id_elementos, 'Prestado');
 
             res.status(201).json({ message: 'Préstamo registrado con éxito.' });
         } catch (error) {
@@ -55,12 +55,13 @@ const prestamoController = {
     devolverPrestamo: async (req, res) => {
         try {
             const { id } = req.params; // ID del préstamo
-            const { elemento_id } = req.body; // Necesitamos el ID del elemento para volver a ponerlo disponible
+            const { id_elementos } = req.body; // Necesitamos el ID del elemento para volver a ponerlo disponible
 
-            if (!elemento_id) {
+            if (!id_elementos) {
                 return res.status(400).json({ message: 'El ID del elemento es requerido para la devolución.' });
             }
 
+            console.log("Datos recibidos para devolución -> ID Préstamo:", id, "| ID Elemento:", id_elementos);
             // 1. Finalizar el préstamo
             const finalizado = await Prestamo.finalizar(id);
             if (!finalizado) {
@@ -68,7 +69,7 @@ const prestamoController = {
             }
 
             // 2. Volver a poner el objeto como 'Disponible'
-            await Elemento.updateEstado(elemento_id, 'Disponible');
+            await Elemento.updateEstado(id_elementos, 'Disponible');
 
             res.status(200).json({ message: 'Devolución procesada correctamente.' });
         } catch (error) {

@@ -6,12 +6,12 @@ class Prestamo {
     static async getAllActivos() {
         try {
             const sql = `
-                SELECT p.id, p.fechayhora_salida, p.observaciones, p.estado,
+                SELECT p.id, p.id_elementos, p.id_docentes, p.fechayhora_salida, p.observaciones, p.estado,
                        d.nombre AS docente_nombre, d.apellido AS docente_apellido,
                        e.nombre AS elemento_nombre, e.categoria AS elemento_categoria
                 FROM prestamos p
-                JOIN docentes d ON p.id_docente = d.id
-                JOIN elementos e ON p.id_elemento = e.id
+                JOIN docentes d ON p.id_docentes = d.id
+                JOIN elementos e ON p.id_elementos = e.id
                 WHERE p.estado = 'Activo'
                 ORDER BY p.fechayhora_salida DESC`;
             const [rows] = await db.query(sql);
@@ -29,8 +29,8 @@ class Prestamo {
                        d.nombre AS docente_nombre, d.apellido AS docente_apellido,
                        e.nombre AS elemento_nombre
                 FROM prestamos p
-                JOIN docentes d ON p.id_docente = d.id
-                JOIN elementos e ON p.elemento_id = e.id
+                JOIN docentes d ON p.id_docentes = d.id
+                JOIN elementos e ON p.id_elementos = e.id
                 ORDER BY p.fechayhora_salida DESC`;
             const [rows] = await db.query(sql);
             return rows;
@@ -40,10 +40,10 @@ class Prestamo {
     }
 
     // 3. Registrar un nuevo préstamo
-    static async create(id_docente, id_elemento, observaciones = '') {
+    static async create({ id_docentes, id_elementos, observaciones = '' }) {
         try {
-            const sql = 'INSERT INTO prestamos (id_docente, id_elemento, observacion, estado) VALUES (?, ?, ?, Activo)';
-            const [result] = await db.query(sql, [id_docente, id_elemento, observaciones]);
+            const sql = "INSERT INTO prestamos (id_docentes, id_elementos, observaciones, estado) VALUES (?, ?, ?, 'Activo')";
+            const [result] = await db.query(sql, [id_docentes, id_elementos, observaciones]);
             return result.insertId;
         } catch (error) {
             throw new Error('Error al registrar préstamo: ' + error.message);
