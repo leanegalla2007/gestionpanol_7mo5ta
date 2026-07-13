@@ -3,6 +3,16 @@ const db = require('../config/db');
 
 class Prestamo {
     // 1. Obtener solo préstamos ACTIVOS (lo que está afuera del pañol ahora)
+    static async getById(id){ 
+    try{
+        const sql = 'SELECT * FROM prestamos WHERE id = ?';
+        const [rows] = await db.query(sql, [id]);
+        return rows[0];
+    } catch (error) {
+        throw new Error('Error al obtener el prestamo: ' + error.message);
+    }
+    }
+
     static async getAllActivos() {
         try {
             const sql = `
@@ -40,10 +50,10 @@ class Prestamo {
     }
 
     // 3. Registrar un nuevo préstamo
-    static async create({ id_docentes, id_elementos, observaciones = '' }) {
+    static async create({ id_docentes, id_elementos, observaciones = '', cantidad = '1' }) {
         try {
-            const sql = "INSERT INTO prestamos (id_docentes, id_elementos, observaciones, estado) VALUES (?, ?, ?, 'Activo')";
-            const [result] = await db.query(sql, [id_docentes, id_elementos, observaciones]);
+            const sql = "INSERT INTO prestamos (id_docentes, id_elementos, observaciones, cantidad, estado) VALUES (?, ?, ?, ?, 'Activo')";
+            const [result] = await db.query(sql, [id_docentes, id_elementos, observaciones, cantidad]);
             return result.insertId;
         } catch (error) {
             throw new Error('Error al registrar préstamo: ' + error.message);

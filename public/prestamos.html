@@ -99,6 +99,10 @@
                             </select>
                         </div>
                         <div class="mb-3">
+                            <label for="cantidad_total" class="form-label">Cantidad de objetos que lleva el docente</label>
+                            <input type="number" id="cantidad_total" class="form-control" min="1" value="1" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="observaciones" class="form-label">Observaciones (Opcional)</label>
                             <textarea id="observaciones" class="form-control" rows="2" placeholder="Ej: Se lleva sin control remoto, falta cable HDMI..."></textarea>
                         </div>
@@ -157,7 +161,7 @@
         async function cargarHistorial() {
             const tabla = document.getElementById('tabla-historial');
             try {
-                const res = await fetch(`${API_URL}/prestamos/historial`);
+                const res = await fetch(`${API_URL}/historial`);
                 const datos = await res.json();
                 tabla.innerHTML = '';
 
@@ -192,6 +196,7 @@
         async function prepararFormulario() {
             const selectDocente = document.getElementById('select-docente');
             const selectElemento = document.getElementById('select-elemento');
+            const observaciones = document.getElementById('observaciones');
 
             try {
                 // Traer Docentes
@@ -226,12 +231,15 @@
             const id_docentes = document.getElementById('select-docente').value;
             const id_elementos = document.getElementById('select-elemento').value;
             const observaciones = document.getElementById('observaciones').value;
+            const cantidad = parseInt(document.getElementById('cantidad_total').value) || 1;
+
+            console.log("DEBUG FRONTEND ->", { id_docentes, id_elementos, observaciones, cantidad });
 
             try {
                 const res = await fetch(`http://localhost:3000/api/prestamos`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_docentes, id_elementos, observaciones })
+                    body: JSON.stringify({ id_docentes, id_elementos, observaciones, cantidad })
                 });
 
                 if (res.ok) {

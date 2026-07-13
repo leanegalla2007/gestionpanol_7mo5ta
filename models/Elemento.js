@@ -34,15 +34,16 @@ class Elemento {
     }
 
     // 4. Actualizar el estado de un elemento (ej: de 'Disponible' a 'En Reparación')
-    static async updateEstado(id, nuevoEstado) {
+    static async updateStockYEstado(id, nuevoStock, nuevoEstado) {
         try {
-            const sql = 'UPDATE elementos SET estado = ? WHERE id = ?';
-            await db.query(sql, [nuevoEstado, id]);
-            return { id, estado: nuevoEstado };
+            const sql = "UPDATE elementos SET cantidad_total = ?, estado = ? WHERE id = ?";
+            await db.query(sql, [nuevoStock, nuevoEstado, id]);
+            return { id, cantidad_total:nuevoStock, estado: nuevoEstado };
         } catch (error) {
             throw new Error('Error al actualizar el estado del elemento: ' + error.message);
         }
     }
 }
+
 
 module.exports = Elemento;
