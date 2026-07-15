@@ -16,7 +16,7 @@ class Prestamo {
     static async getAllActivos() {
         try {
             const sql = `
-                SELECT p.id, p.id_elementos, p.id_docentes, p.fechayhora_salida, p.observaciones, p.estado,
+                SELECT p.id, p.id_elementos, p.id_docentes, p.fechayhora_salida, p.observaciones, p.estado, p.cantidad,
                        d.nombre AS docente_nombre, d.apellido AS docente_apellido,
                        e.nombre AS elemento_nombre, e.categoria AS elemento_categoria
                 FROM prestamos p
@@ -35,7 +35,7 @@ class Prestamo {
     static async getHistorial() {
         try {
             const sql = `
-                SELECT p.id, p.fechayhora_salida, p.fechayhora_devolucion, p.estado, p.observaciones,
+                SELECT p.id, p.fechayhora_salida, p.fechayhora_devolucion, p.estado, p.observaciones, p.cantidad,
                        d.nombre AS docente_nombre, d.apellido AS docente_apellido,
                        e.nombre AS elemento_nombre
                 FROM prestamos p

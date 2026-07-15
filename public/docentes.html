@@ -29,7 +29,8 @@
                                 <th style="width: 20%">Nombre</th>
                                 <th style="width: 20%">Apellido</th>
                                 <th style="width: 20%">DNI</th>
-                                <th style="width: 22%">Turno</th>
+                                <th style="width: 20%">Turno</th>
+                                <th style="width: 12%">Curso</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-docentes">
@@ -75,6 +76,21 @@
                                 <label class="form-check-label" for="turnoVespertino">Vespertino</label>
                            </div>
                         </div>
+                        <div class="mb-3">
+                        <label class="form-label d-block">Curso/s del Docente</label>
+                        <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="curso" id="turnoInferior" value="Inferior">
+                                <label class="form-check-label" for="cursoInferior">Inferior</label>
+                           </div>
+                           <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="curso" id="cursoSuperior" value="Superior">
+                                <label class="form-check-label" for="cursoSuperior">Superior</label>
+                           </div>
+                           <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="curso" id="cursoTaller" value="Taller">
+                                <label class="form-check-label" for="cursoTaller">Taller</label>
+                           </div>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -108,6 +124,7 @@
                     <td><strong>${docentes.nombre}</strong></td>
                     <td>${docentes.dni}</td>
                     <td><span>${docentes.turno}</span></td>
+                    <td><span>${docentes.curso}</span></td>
                     `
                     tabla.appendChild(fila);
                 });
@@ -130,9 +147,13 @@
             const apellido = document.getElementById('apellido').value;
             const dni = document.getElementById('dni').value;
             
-            const checkboxes = document.querySelectorAll('input[name="turno"]:checked');
-            const turnosArray = Array.from(checkboxes).map(cb => cb.value);
+            const checkboxesTurno = document.querySelectorAll('input[name="turno"]:checked');
+            const turnosArray = Array.from(checkboxesTurno).map(cb => cb.value);
             const turno = turnosArray.join(', ');
+            
+            const checkboxesCursos = document.querySelectorAll('input[name="curso"]:checked');
+            const cursosArray =Array.from(checkboxesCursos).map(cb => cb.value);
+            const curso = cursosArray.join(', ');
             
             if (turnosArray.length === 0) {
                 alert("Selecciona al menos un turno para agregar al docente a la lista");
@@ -143,7 +164,7 @@
                 const respuesta = await fetch (API_URL, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({nombre, apellido, dni, turno})
+                    body: JSON.stringify({nombre, apellido, dni, turno, curso})
                 });
                 if (respuesta.ok) {
                     alert ('Docente agregado a la lista con exito');

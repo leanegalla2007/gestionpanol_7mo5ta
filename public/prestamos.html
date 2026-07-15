@@ -27,7 +27,14 @@
                 ➕ Registrar Nuevo Préstamo
             </button>
         </div>
-
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"></span>
+                    <input type="text" id="input-busqueda" class="form-control border-start-0" placehorder="Buscar por docente, elemento o categoria...">
+                </div>
+            </div>
+        </div>
         <div class="tab-content" id="prestamosTabsContent">
             
             <div class="tab-pane fade show active" id="activos" role="tabpanel" aria-labelledby="activos-tab">
@@ -40,6 +47,7 @@
                                     <th>Docente</th>
                                     <th>Elemento</th>
                                     <th>Categoría</th>
+                                    <th>Cant. llevada</th>
                                     <th>Observaciones</th>
                                     <th class="text-center">Acción</th>
                                 </tr>
@@ -63,6 +71,7 @@
                                     <th>Docente</th>
                                     <th>Elemento</th>
                                     <th>Estado</th>
+                                    <th>Cant. llevada</th>
                                     <th>Observaciones</th>
                                 </tr>
                             </thead>
@@ -142,6 +151,7 @@
                             <td><strong>${p.docente_apellido}, ${p.docente_nombre}</strong></td>
                             <td>${p.elemento_nombre}</td>
                             <td><span class="badge bg-secondary">${p.elemento_categoria}</span></td>
+                            <td><strong>${p.cantidad}</strong></td>
                             <td class="text-muted"><em>${p.observaciones || '-'}</em></td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-success fw-bold" onclick="devolverObjeto(${p.id}, ${p.id_elementos})">
@@ -182,6 +192,7 @@
                             <td>${p.docente_apellido}, ${p.docente_nombre}</td>
                             <td><strong>${p.elemento_nombre}</strong></td>
                             <td><span class="badge ${badge}">${p.estado}</span></td>
+                            <td><strong>${p.cantidad}</strong></td>
                             <td class="text-muted"><small>${p.observaciones || '-'}</small></td>
                         </tr>
                     `;
@@ -204,7 +215,7 @@
                 const docentes = await resDoc.json();
                 selectDocente.innerHTML = '<option value="" selected disabled>Seleccioná el docente...</option>';
                 docentes.forEach(d => {
-                    selectDocente.innerHTML += `<option value="${d.id}">${d.apellido}, ${d.nombre}, (DNI: ${d.dni}) ${d.turno}</option>`;
+                    selectDocente.innerHTML += `<option value="${d.id}">${d.apellido}, ${d.nombre}: (${d.turno}) | (${d.curso})</option>`;
                 });
 
                 // Traer Elementos
@@ -215,7 +226,7 @@
                 // IMPORTANTE: Solo dejamos seleccionar elementos cuyo estado sea 'Disponible'
                 elementos.forEach(e => {
                     if (e.estado === 'Disponible') {
-                        selectElemento.innerHTML += `<option value="${e.id}">${e.nombre} (${e.categoria})</option>`;
+                        selectElemento.innerHTML += `<option value="${e.id}">${e.nombre}: (cantidad restante: ${e.cantidad_total}) | (${e.categoria})</option>`;
                     }
                 });
             } catch (err) {
@@ -279,6 +290,25 @@
                 alert('Error de conexión.');
             }
         }
+
+        document.getElementById('input-busqueda').addEventListener('input', function (e) {
+            const textoBusqueda = e.target.value.toLowerCase().trim();
+            
+            // Seleccionamos todas las filas del cuerpo de la tabla
+            const filas = document.querySelectorAll('table tbody tr');
+
+            filas.forEach(fila => {
+                // 🌟 TRUCO: Obtenemos TODO el texto de la fila junto (docente, elemento, fecha, etc.)
+                const textoFila = fila.textContent.toLowerCase();
+
+                // Si lo que escribió el usuario está en algún lugar de la fila, la dejamos visible
+                if (textoFila.includes(textoBusqueda)) {
+                    fila.style.display = ''; // Se muestra
+                } else {
+                    fila.style.display = 'none'; // Se oculta
+                }
+            });
+        });
 
         // Ejecutar por defecto al cargar la página
         window.addEventListener('DOMContentLoaded', cargarPrestamosActivos);

@@ -13,13 +13,17 @@ const docenteController = {
 
     createDocente: async (req, res) => {
         try {
-            const { nombre, apellido, dni, turno } = req.body;
+            console.log("-> BODY RECIBIDO EN DOCENTES:", req.body);
 
-            if (!nombre || !apellido || !dni || !turno) {
+            const { nombre, apellido, dni, turno, curso } = req.body;
+
+            await Docente.create({ nombre, apellido, dni, turno, curso });
+
+            if (!nombre || !apellido || !dni || !turno || !curso) {
                 return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
             }
 
-            const nuevoDocente = await Docente.create(nombre, apellido, dni, turno);
+            const nuevoDocente = await Docente.create(nombre, apellido, dni, turno, curso);
             res.status(201).json({ message: 'Docente registrado con éxito', docente: nuevoDocente });
         } catch (error) {
             res.status(500).json({ error: error.message });
