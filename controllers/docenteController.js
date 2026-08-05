@@ -17,16 +17,20 @@ const docenteController = {
 
             const { nombre, apellido, dni, turno, curso } = req.body;
 
-            await Docente.create({ nombre, apellido, dni, turno, curso });
-
+            // 1. Validamos PRIMERO que no falte ningún dato
             if (!nombre || !apellido || !dni || !turno || !curso) {
                 return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
             }
 
-            const nuevoDocente = await Docente.create(nombre, apellido, dni, turno, curso);
-            res.status(201).json({ message: 'Docente registrado con éxito', docente: nuevoDocente });
+            // 2. Guardamos UNICAMENTE UNA VEZ usando req.body
+            const nuevoDocente = await Docente.create({ nombre, apellido, dni, turno, curso });
+
+            // 3. Respondemos con status 201
+            return res.status(201).json({ message: 'Docente registrado con éxito', docente: nuevoDocente });
+
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            console.error("🔴 ERROR EXACTO AL CREAR DOCENTE:", error);
+            return res.status(500).json({ error: error.message });
         }
     }
 };
