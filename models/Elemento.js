@@ -23,11 +23,11 @@ class Elemento {
     }
 
     // 3. Insertar un nuevo elemento al inventario (tizas, proyectores, etc.)
-    static async create(nombre, categoria, cantidad_total, estado = 'Disponible') {
+    static async create({nombre, categoria, cantidad_total, stock_minimo, estado = 'Disponible'}) {
         try {
-            const sql = 'INSERT INTO elementos (nombre, categoria, cantidad_total, estado) VALUES (?, ?, ?, ?)';
-            const [result] = await db.query(sql, [nombre, categoria, cantidad_total, estado]);
-            return { id: result.insertId, nombre, categoria, cantidad_total,  estado };
+            const sql = 'INSERT INTO elementos (nombre, categoria, cantidad_total, stock_minimo, estado) VALUES (?, ?, ?, ?, ?)';
+            const [result] = await db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado]);
+            return { id: result.insertId, nombre, categoria, cantidad_total, stock_minimo, estado };
         } catch (error) {
             throw new Error('Error al crear el elemento: ' + error.message);
         }

@@ -32,14 +32,14 @@ const elementoController = {
     createElemento: async (req, res) => {
         try {
             // Recibimos los datos del formulario (desde el body de la petición)
-            const { nombre, categoria, cantidad_total } = req.body;
+            const { nombre, categoria, cantidad_total, stock_minimo } = req.body;
 
             // Validación básica de campos obligatorios
-            if (!nombre || !categoria || !cantidad_total) {
-                return res.status(400).json({ message: 'Nombre y categoría son obligatorios' });
+            if (!nombre || !categoria || !cantidad_total || !stock_minimo) {
+                return res.status(400).json({ message: 'El campo faltante es obligatorio' });
             }
 
-            const nuevoElemento = await Elemento.create(nombre, categoria, cantidad_total);
+            const nuevoElemento = await Elemento.create(nombre, categoria, cantidad_total, stock_minimo);
             res.status(201).json({
                 message: 'Elemento creado con éxito',
                 elemento: nuevoElemento

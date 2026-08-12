@@ -1,0 +1,12 @@
+.contenedor-img {
+ width: 100%;
+ height: 200px;
+ overflow: hidden;
+}
+
+.contenedor-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}

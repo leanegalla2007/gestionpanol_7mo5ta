@@ -120,8 +120,8 @@
 
                     fila.innerHTML = `
                     <td>${docentes.id}</td>
-                    <td><strong>${docentes.apellido}</strong></td> 
                     <td><strong>${docentes.nombre}</strong></td>
+                    <td><strong>${docentes.apellido}</strong></td> 
                     <td>${docentes.dni}</td>
                     <td><span>${docentes.turno}</span></td>
                     <td><span>${docentes.curso}</span></td>
@@ -130,7 +130,7 @@
                 });
 
                 if (docentes.length === 0) {
-                    tabla.innerHTML = `<tr><td colspan="5" class+"text-center py-4">No hay docentes cargados en la lista todavia.</td></tr>`;
+                    tabla.innerHTML = `<tr><td colspan="6" class+"text-center py-4">No hay docentes cargados en la lista todavia.</td></tr>`;
                     return;
                 }
             }  catch (error) {
@@ -145,7 +145,9 @@
 
             const nombre = document.getElementById('nombre').value;
             const apellido = document.getElementById('apellido').value;
-            const dni = document.getElementById('dni').value;
+            const dni = document.getElementById('dni').value.trim(); 
+            const Mindigitosdni = 7;
+            const Maxdigitosdni = 8;
             
             const checkboxesTurno = document.querySelectorAll('input[name="turno"]:checked');
             const turnosArray = Array.from(checkboxesTurno).map(cb => cb.value);
@@ -155,6 +157,16 @@
             const cursosArray =Array.from(checkboxesCursos).map(cb => cb.value);
             const curso = cursosArray.join(', ');
             
+            if (dni.length < Mindigitosdni) {
+                alert("el DNI no puede tener menos de " + Mindigitosdni + " digitos");
+                return;
+            }
+
+            if (dni.length > Maxdigitosdni) {
+                alert("Los digitos DNI supero el maximo establecido (" + Maxdigitosdni + ")")
+                return; 
+            }
+
             if (turnosArray.length === 0) {
                 alert("Selecciona al menos un turno para agregar al docente a la lista");
                 return;

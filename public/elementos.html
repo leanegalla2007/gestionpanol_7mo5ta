@@ -28,10 +28,11 @@
                         <thead class="table-dark">
                             <tr>
                                 <th style="width: 8%">ID</th>
-                                <th style="width: 45%">Nombre del Elemento</th>
+                                <th style="width: 30%">Nombre del Elemento</th>
                                 <th style="width: 17%">Categoría</th>
                                 <th style="width: 15%">Estado</th>
                                 <th style="width: 15%">Cantidad</th>
+                                <th style="width: 15%;">Min. Stock</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-elementos">
@@ -73,6 +74,11 @@
                             <label for="cantidad_total" class="form-label">Cantidad Inicial</label>
                             <input type="number" id="cantidad_total" class="form-control" min="1" value="1" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="stock_minimo" class="form_label">Stock Minimo de Alerta</label>
+                            <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" value="5" min="1" required>
+                            <small class="text-muted">El sistema avisara cuando la cantidad baje o iguale este numero.</small>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -108,22 +114,30 @@
                 elementos.forEach(item => {
                     const badgeColor = item.estado === 'Disponible' ? 'bg-success' : 'bg-warning';
                     const cantidad = item.cantidad_total !== undefined ? item.cantidad_total : 0;
+                    const minStock = item.stock_minimo
+                    const esCritico = item.cantidad_total <= item.stock_minimo
+                    const badgeCantidad = esCritico 
+                    ? `<span class="badge bg-danger"> ${item.cantidad_total} (poco stock)</span>`
+                    :`<span class="badge bg-success">${item.cantidad_total}</span>`;
+                    const claseFila = esCritico ? 'table-warning' : ''
 
                     tabla.innerHTML += `
-                        <tr>
+                        <tr class=claseFila>
                             <td>${item.id}</td>
                             <td><strong>${item.nombre}</strong></td>
                             <td>${item.categoria}</td>
                             <td><span class="badge ${badgeColor}">${item.estado}</span></td>
-                            <td><strong class="text-secondary">${cantidad}</strong> unidades</td>
+                            <td><strong class="text-secondary">${badgeCantidad}</strong> unidades</td>
+                            <td><strong class="text-secondary">${minStock}</strong></td>
                         </tr>
                     `;
                 });
             } catch (error) {
                 console.error(error);
-                tabla.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`;
+                tabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`;
             }
         }
+        
 
         // 2. LOGICA DEL FORMULARIO DENTRO DEL MODAL
         document.getElementById('form-elemento').addEventListener('submit', async (e) => {
@@ -132,12 +146,13 @@
             const nombre = document.getElementById('nombre').value;
             const categoria = document.getElementById('categoria').value;
             const cantidad_total = document.getElementById('cantidad_total').value;
+            const stock_minimo = document.getElementById('stock_minimo').value;
 
             try {
                 const respuesta = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, categoria, cantidad_total })
+                    body: JSON.stringify({ nombre, categoria, cantidad_total, stock_minimo })
                 });
 
                 if (respuesta.ok) {
