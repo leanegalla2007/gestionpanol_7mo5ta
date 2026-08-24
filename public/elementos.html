@@ -31,7 +31,7 @@
                                 <th style="width: 30%">Nombre del Elemento</th>
                                 <th style="width: 17%">Categoría</th>
                                 <th style="width: 15%">Estado</th>
-                                <th style="width: 15%">Cantidad</th>
+                                <th style="width: 15%">Cantidad (unidades)</th>
                                 <th style="width: 15%;">Min. Stock</th>
                             </tr>
                         </thead>
@@ -127,7 +127,7 @@
                             <td><strong>${item.nombre}</strong></td>
                             <td>${item.categoria}</td>
                             <td><span class="badge ${badgeColor}">${item.estado}</span></td>
-                            <td><strong class="text-secondary">${badgeCantidad}</strong> unidades</td>
+                            <td><strong class="text-secondary">${badgeCantidad}</strong></td>
                             <td><strong class="text-secondary">${minStock}</strong></td>
                         </tr>
                     `;
@@ -173,6 +173,43 @@
                 alert('No se pudo enviar el elemento al servidor.');
             }
         });
+
+    function editarInventario(id) {
+        const fila = document.getElementById(`fila-${id}`);
+        const celdas = fila.getElementsByClassName('dato');
+        const valoresActuales = Array.from(celdas).map(span => span.innerText.replace('$', ''));
+
+        fila.innerHTML = `
+            <td><input type="text" id="edit-elem-${id}" value"${valoresActuales[0]}></td>
+            <td><input type="select" id="edit-cate-${id}" value"${valoresActuales[1]}></td>
+            <td><input type="text" id="edit-estado-${id}" value"${valoresActuales[2]}>readonly</td>
+            <td><input type="number" id="edit-cant-${id}" value"${valoresActuales[3]}></td>
+            <td><input type="number" id="edit-minstock-${id}" value"${valoresActuales[4]}></td>
+            <td>
+                <button class="btn-save" onclick="guardarEdicion(${id})">Guardar</button>
+                <button class="btn-delete" onclick"cargar()">Cancelar</button>
+            </td>`;
+    }
+
+    async function guardarEdicion(id) {
+        const actualizado = {
+            nombre: document.getElementById(`edit-elem-${id}`).value,
+            categoria: document.getElementById(`edit-cate-${id}`).value,
+            cantidad_total: document.getElementById(`edit-cant-${id}`).value,
+            stock_minimo: document.getElementById(`edit-minstock-${id}`).value,
+        };
+
+        const res = await fetch (`${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(actualizado)
+        });
+
+        if (res.ok) cargar();
+        else console.log(id);
+    }
 
         // Ejecutar de forma automática al abrir la web
         window.addEventListener('DOMContentLoaded', cargarInventario);

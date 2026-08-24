@@ -67,6 +67,16 @@ const elementoController = {
         } catch (error) {
             res.status(500).json({ error: error.message });
         }
+    },
+
+    editarElemento = (req, res) => {
+         const {id} = req.params;
+
+        const nombre = req.body.nombre;
+        const categoria = req.body.categoria || null;
+        const cantidad = req.body.cantidad_total === '' || req.body.cantidad_total == null ? null : req.body.cantidad_total
+        const minstock = req.body.stock_minimo === '' || req.body.stock_minimo == null ? null : req.body.stock_minimo
+        
     }
 };
 
