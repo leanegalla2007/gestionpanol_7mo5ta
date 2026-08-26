@@ -15,7 +15,6 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="text-secondary mb-0">Inventario Completo</h4>
             <div>
-                <button type="button" class="btn btn-primary" onclick="editarInventario()">Editar Stock</button>
                 <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalElemento">Cargar Nuevo Elemento</button>
                 <button type="button" class="btn btn-primary" onclick="cargarInventario()">Actualizar Stock</button>
             </div>
@@ -28,16 +27,17 @@
                         <thead class="table-dark">
                             <tr>
                                 <th style="width: 8%">ID</th>
-                                <th style="width: 30%">Nombre del Elemento</th>
+                                <th style="width: 25%">Nombre del Elemento</th>
                                 <th style="width: 17%">Categoría</th>
                                 <th style="width: 15%">Estado</th>
                                 <th style="width: 15%">Cantidad (unidades)</th>
                                 <th style="width: 15%;">Min. Stock</th>
+                                <th style="width: 5%;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-elementos">
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">Cargando elementos...</td>
+                                <td colspan="6" class="text-center text-muted py-4">Cargando elementos...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -88,6 +88,25 @@
             </div>
         </div>
     </div>
+    
+    <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalElementoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header color-orange bg-success text-white">
+                    <h5 class="modal-title" id="modalElementoLabel">Editar informacion del Elemento</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="form-editar">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label"> Nombre del Objeto</label>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -124,17 +143,18 @@
                     tabla.innerHTML += `
                         <tr class=claseFila>
                             <td>${item.id}</td>
-                            <td><strong>${item.nombre}</strong></td>
-                            <td>${item.categoria}</td>
-                            <td><span class="badge ${badgeColor}">${item.estado}</span></td>
-                            <td><strong class="text-secondary">${badgeCantidad}</strong></td>
-                            <td><strong class="text-secondary">${minStock}</strong></td>
+                            <td><strong class="dato">${item.nombre}</strong></td>
+                            <td><span class="dato">${item.categoria}</td>
+                            <td><span class="dato badge ${badgeColor}">${item.estado}</span></td>
+                            <td><strong class="dato text-secondary">${badgeCantidad}</strong></td>
+                            <td><strong class="dato text-secondary">${minStock}</strong></td>
+                            <td><button type="button" class="btn btn-primary" onclick="editarInventario(${item.id})">Editar Stock</button></td>
                         </tr>
                     `;
                 });
             } catch (error) {
                 console.error(error);
-                tabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`;
+                tabla.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`;
             }
         }
         
@@ -176,15 +196,13 @@
 
     function editarInventario(id) {
         const fila = document.getElementById(`fila-${id}`);
-        const celdas = fila.getElementsByClassName('dato');
         const valoresActuales = Array.from(celdas).map(span => span.innerText.replace('$', ''));
 
         fila.innerHTML = `
             <td><input type="text" id="edit-elem-${id}" value"${valoresActuales[0]}></td>
             <td><input type="select" id="edit-cate-${id}" value"${valoresActuales[1]}></td>
-            <td><input type="text" id="edit-estado-${id}" value"${valoresActuales[2]}>readonly</td>
-            <td><input type="number" id="edit-cant-${id}" value"${valoresActuales[3]}></td>
-            <td><input type="number" id="edit-minstock-${id}" value"${valoresActuales[4]}></td>
+            <td><input type="number" id="edit-cant-${id}" value"${valoresActuales[2]}></td>
+            <td><input type="number" id="edit-minstock-${id}" value"${valoresActuales[3]}></td>
             <td>
                 <button class="btn-save" onclick="guardarEdicion(${id})">Guardar</button>
                 <button class="btn-delete" onclick"cargar()">Cancelar</button>

@@ -43,6 +43,15 @@ class Elemento {
             throw new Error('Error al actualizar el estado del elemento: ' + error.message);
         }
     }
+
+    actualizarStock = (datosStock, callback) => {
+        const {nombre, categoria, cantidad_total, stock_minimo, estado, id} = datosStock;
+        db.query(
+            "UPDATE elementos SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ? WHERE id = ?",
+            [nombre, categoria, cantidad_total, stock_minimo, stock_minimo, estado, id],
+            callback
+        );
+    }
 }
 
 
