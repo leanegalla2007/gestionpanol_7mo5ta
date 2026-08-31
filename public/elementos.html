@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalElemento" tabindex="-1" aria-labelledby="modalElementoLabel" aria-hidden="true">
+    <div class="modal fade" id="modalElemento" tabindex="-1" aria-labelledby="modalElementoLabel" aria-hidden="true"> 
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
@@ -92,7 +92,7 @@
     <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalElementoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header color-orange bg-success text-white">
+                <div class="modal-header bg-success text-white">
                     <h5 class="modal-title" id="modalElementoLabel">Editar informacion del Elemento</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -100,7 +100,31 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="nombre" class="form-label"> Nombre del Objeto</label>
-
+                            <input type="text" id="edit-nombre" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="categoria" class="form-label">Categoría</label>
+                            <select id="edit-categoria" class="form-select" required>
+                                <option value="" selected disabled>Seleccionar categoria...</option>
+                                <option value="Tecnología">Tecnología</option>
+                                <option value="Útiles">Útiles</option>
+                                <option value="Mapas">Mapas</option>
+                                <option value="Electricidad">Electricidad</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cantidad_total" class="form-label">Cantidad Inicial</label>
+                            <input type="number" id="edit-cantidad_total" class="form-control" min="1" value="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="stock_minimo" class="form_label">Stock Minimo de Alerta</label>
+                            <input type="number" class="form-control" id="edit-stock_minimo" name="stock_minimo" value="5" min="1" required>
+                            <small class="text-muted">El sistema avisara cuando la cantidad baje o iguale este numero.</small>
+                        </div>
+                        <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success" onclick="editarInventario">Guardar cambios</button>
                         </div>
                     </div>
                 </form>
@@ -141,14 +165,14 @@
                     const claseFila = esCritico ? 'table-warning' : ''
 
                     tabla.innerHTML += `
-                        <tr class=claseFila>
+                        <tr class="claseFila">
                             <td>${item.id}</td>
                             <td><strong class="dato">${item.nombre}</strong></td>
                             <td><span class="dato">${item.categoria}</td>
                             <td><span class="dato badge ${badgeColor}">${item.estado}</span></td>
                             <td><strong class="dato text-secondary">${badgeCantidad}</strong></td>
                             <td><strong class="dato text-secondary">${minStock}</strong></td>
-                            <td><button type="button" class="btn btn-primary" onclick="editarInventario(${item.id})">Editar Stock</button></td>
+                            <td><button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalEditar" onclick="ModaleditarInventario(${item.id})">Editar Stock</button></td>
                         </tr>
                     `;
                 });
@@ -194,8 +218,23 @@
             }
         });
 
-    function editarInventario(id) {
+    function ModaleditarInventario(nombre, categoria, estado, cantidad_total, stock_minimo, estado) {
+    // 1. Llenamos los inputs del modal con la información actual del elemento
+    document.getElementById('edit-nombre').value = nombre;
+    document.getElementById('edit-categoria').value = categoria;
+    document.getElementById('edit-cantidad_total').value = cantidad_total;
+    document.getElementById('edit-stock_minimo').value = stock_minimo;
+
+
+    // 2. Abrimos el modal de Bootstrap
+    const modalEditar = new bootstrap.Modal(document.getElementById('modalEditarElemento'));
+    modalEditar.show();
+    }  
+
+    function editarInventario(id, nombre, categoria, cantidad_total, stock_minimo) {
+        console.log(id); 
         const fila = document.getElementById(`fila-${id}`);
+        const celdas = fila.querySelectorAll('claseFila');
         const valoresActuales = Array.from(celdas).map(span => span.innerText.replace('$', ''));
 
         fila.innerHTML = `
@@ -232,5 +271,5 @@
         // Ejecutar de forma automática al abrir la web
         window.addEventListener('DOMContentLoaded', cargarInventario);
     </script>
-</body>
+    </body>
 </html>
