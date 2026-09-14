@@ -56,7 +56,7 @@
                 <form id="form-elemento">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="nombre" class="form-label">Nombre del Objeto</label>
+                            <label for="nombre"  class="form-label">Nombre del Objeto</label>
                             <input type="text" id="nombre" class="form-control" placeholder="Ej: Cajas de Tizas Blancas" required>
                         </div>
                         <div class="mb-3">
@@ -89,16 +89,17 @@
         </div>
     </div>
     
-    <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalElementoLabel" aria-hidden="true">
+    <div class="modal fade" id="modalEditarInventario" tabindex="-1" aria-labelledby="modalElementoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title" id="modalElementoLabel">Editar informacion del Elemento</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="form-editar">
+                <form id="form-editar" onsubmit="guardarEdicion(event)">
                     <div class="modal-body">
                         <div class="mb-3">
+                            <input type="hidden" id="edit-id"></input>
                             <label for="nombre" class="form-label"> Nombre del Objeto</label>
                             <input type="text" id="edit-nombre" class="form-control" required>
                         </div>
@@ -124,7 +125,7 @@
                         </div>
                         <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-success" onclick="editarInventario">Guardar cambios</button>
+                        <button type="submit" class="btn btn-success">Guardar cambios</button>
                         </div>
                     </div>
                 </form>
@@ -135,6 +136,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        let elementosGlobal = [];
         const API_URL = 'http://localhost:3000/api/elementos';
 
         // 1. FUNCIÓN PARA OBTENER LAS ROWS Y REDIBUJAR LA TABLA ANCHA
@@ -146,6 +148,8 @@
 
                 const respuesta = await fetch(API_URL);
                 const elementos = await respuesta.json(); 
+
+                elementosGlobal = elementos;
 
                 tabla.innerHTML = '';
 
@@ -168,11 +172,11 @@
                         <tr class="claseFila">
                             <td>${item.id}</td>
                             <td><strong class="dato">${item.nombre}</strong></td>
-                            <td><span class="dato">${item.categoria}</td>
+                            <td><span class="dato">${item.categoria}</span></td>
                             <td><span class="dato badge ${badgeColor}">${item.estado}</span></td>
                             <td><strong class="dato text-secondary">${badgeCantidad}</strong></td>
                             <td><strong class="dato text-secondary">${minStock}</strong></td>
-                            <td><button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalEditar" onclick="ModaleditarInventario(${item.id})">Editar Stock</button></td>
+                            <td><button type="button" class="btn btn-success me-2" data-bs-target="#modalEditarInventario" onclick="ModaleditarInventario(${item.id})">Editar Stock</button></td>
                         </tr>
                     `;
                 });
@@ -218,58 +222,87 @@
             }
         });
 
-    function ModaleditarInventario(nombre, categoria, estado, cantidad_total, stock_minimo, estado) {
-    // 1. Llenamos los inputs del modal con la información actual del elemento
-    document.getElementById('edit-nombre').value = nombre;
-    document.getElementById('edit-categoria').value = categoria;
-    document.getElementById('edit-cantidad_total').value = cantidad_total;
-    document.getElementById('edit-stock_minimo').value = stock_minimo;
+function ModaleditarInventario(id) {
+    const item = elementosGlobal.find(el => (el.id || el.id_elemento) == id);
 
-
-    // 2. Abrimos el modal de Bootstrap
-    const modalEditar = new bootstrap.Modal(document.getElementById('modalEditarElemento'));
-    modalEditar.show();
-    }  
-
-    function editarInventario(id, nombre, categoria, cantidad_total, stock_minimo) {
-        console.log(id); 
-        const fila = document.getElementById(`fila-${id}`);
-        const celdas = fila.querySelectorAll('claseFila');
-        const valoresActuales = Array.from(celdas).map(span => span.innerText.replace('$', ''));
-
-        fila.innerHTML = `
-            <td><input type="text" id="edit-elem-${id}" value"${valoresActuales[0]}></td>
-            <td><input type="select" id="edit-cate-${id}" value"${valoresActuales[1]}></td>
-            <td><input type="number" id="edit-cant-${id}" value"${valoresActuales[2]}></td>
-            <td><input type="number" id="edit-minstock-${id}" value"${valoresActuales[3]}></td>
-            <td>
-                <button class="btn-save" onclick="guardarEdicion(${id})">Guardar</button>
-                <button class="btn-delete" onclick"cargar()">Cancelar</button>
-            </td>`;
+    if (!item) {
+        console.error("No se encontró el elemento en la lista local con ID:", id);
+        return;
     }
 
-    async function guardarEdicion(id) {
-        const actualizado = {
-            nombre: document.getElementById(`edit-elem-${id}`).value,
-            categoria: document.getElementById(`edit-cate-${id}`).value,
-            cantidad_total: document.getElementById(`edit-cant-${id}`).value,
-            stock_minimo: document.getElementById(`edit-minstock-${id}`).value,
-        };
+    const idReal = item.id || item.id_elemento;
 
-        const res = await fetch (`${id}`, {
-            method: "PUT",
+    // Asignamos el ID al input oculto
+    const inputHidden = document.getElementById("edit-id");
+    if (inputHidden) {
+        inputHidden.value = idReal;
+    } else {
+        console.error("Falta el <input type='hidden' id='edit-id'> en el HTML");
+        return;
+    }
+
+    // Llenamos los inputs
+    document.getElementById('edit-nombre').value = item.nombre || '';
+    document.getElementById('edit-categoria').value = item.categoria || '';
+    document.getElementById('edit-cantidad_total').value = item.cantidad_total !== undefined ? item.cantidad_total : 0;
+    document.getElementById('edit-stock_minimo').value = item.stock_minimo !== undefined ? item.stock_minimo : 5;
+
+    // Abrimos el modal usando la API de Bootstrap o jQuery/Atributos
+    const modalEl = document.getElementById('modalEditarInventario');
+    if (window.bootstrap && bootstrap.Modal) {
+        const modalEditar = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalEditar.show();
+    }
+}
+
+async function guardarEdicion(event) {
+    event.preventDefault(); // Evita recargar la página
+
+    const id = document.getElementById('edit-id').value;
+
+    if (!id) {
+        alert("Error: No se encontró el ID del elemento a actualizar.");
+        return;
+    }
+
+    const datosEditados = {
+        nombre: document.getElementById('edit-nombre').value,
+        categoria: document.getElementById('edit-categoria').value,
+        cantidad_total: parseInt(document.getElementById('edit-cantidad_total').value),
+        stock_minimo: parseInt(document.getElementById('edit-stock_minimo').value)
+    };
+
+    try {
+        // Petición a la API Node.js/Express
+        const respuesta = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
             headers: {
-                "Content-Type": "application/json"
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(actualizado)
+            body: JSON.stringify(datosEditados)
         });
 
-        if (res.ok) cargar();
-        else console.log(id);
-    }
+        if (respuesta.ok) {
+            // Cerramos el modal de forma segura
+            const modalEl = document.getElementById('modalEditarInventario');
+            if (window.bootstrap && bootstrap.Modal) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
 
-        // Ejecutar de forma automática al abrir la web
-        window.addEventListener('DOMContentLoaded', cargarInventario);
+            // Recargamos los datos en la tabla
+            cargarInventario();
+        } else {
+            const errData = await respuesta.json().catch(() => ({}));
+            alert(`El servidor devolvió un error: ${respuesta.status} ${errData.mensaje || ''}`);
+        }
+    } catch (error) {
+        console.error("Detalle del error en red/API:", error);
+        alert('Error de conexión con la API. Revisa la consola (F12) para ver el detalle.');
+    }
+}
+// Ejecutar de forma automática al abrir la web
+window.addEventListener('DOMContentLoaded', cargarInventario);
     </script>
     </body>
 </html>
