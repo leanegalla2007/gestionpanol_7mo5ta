@@ -1,4 +1,5 @@
 // src/controllers/elementoController.js
+const db = require('../config/db');
 const Elemento = require('../models/Elemento');
 
 const elementoController = {
@@ -50,29 +51,45 @@ const elementoController = {
     },
 
     // 4. Cambiar estado (ej: marcar como 'En Reparación')
-    updateEstadoElemento: async (req, res) => {
-        try {
-            const { id } = req.params;
-            const { estado } = req.body;
+    // Reemplazá el controlador que dispara el error 500 por este método unificado:
+updateEstadoElemento: async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, categoria, cantidad_total, stock_minimo, estado } = req.body;
 
-            if (!estado) {
-                return res.status(400).json({ message: 'El nuevo estado es requerido' });
+        const sql = `
+            UPDATE elementos 
+            SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ? 
+            WHERE id = ?
+        `;
+
+        // Intentamos ejecutarlo como Promesa (mysql2/promise)
+        if (db.promise || typeof db.query.then === 'function') {
+            await db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, id]);
+            console.log("--> [PROMISE] BD Actualizada correctamente");
+            return res.status(200).json({ message: 'Elemento actualizado correctamente' });
+        } 
+        
+        // Si no es promesa, usamos Callback tradicional
+        db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, id], (err, result) => {
+            if (err) {
+                console.error("Error SQL:", err);
+                return res.status(500).json({ error: err.message });
             }
+            console.log("--> [CALLBACK] BD Actualizada correctamente");
+            return res.status(200).json({ message: 'Elemento actualizado correctamente' });
+        });
 
-            const elementoActualizado = await Elemento.updateEstado(id, estado);
-            res.status(200).json({
-                message: 'Estado actualizado correctamente',
-                elemento: elementoActualizado
-            });
-        } catch (error) {
-            res.status(500).json({ error: error.message });
-        }
-    },
+    } catch (error) {
+        console.error("Error en actualizarElemento:", error);
+        return res.status(500).json({ error: error.message });
+    }
+},
 
     editarElemento: (req, res) => {
 
         const nombre = req.body.nombre;
-        const categoria = req.body.categoria || null;
+        const categoria = req.body.categoria;
         const cantidad = req.body.cantidad_total === '' || req.body.cantidad_total == null ? null : req.body.cantidad_total
         const minstock = req.body.stock_minimo === '' || req.body.stock_minimo == null ? null : req.body.stock_minimo
 

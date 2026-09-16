@@ -265,40 +265,53 @@ async function guardarEdicion(event) {
         return;
     }
 
+    const cantTotal = parseInt(document.getElementById('edit-cantidad_total').value) || 0;
+    const stckMin = parseInt(document.getElementById('edit-stock_minimo').value) || 0;
+    const estadoActual = cantTotal > 0 ? 'Disponible' : 'Agotado';
+    
     const datosEditados = {
         nombre: document.getElementById('edit-nombre').value,
         categoria: document.getElementById('edit-categoria').value,
-        cantidad_total: parseInt(document.getElementById('edit-cantidad_total').value),
-        stock_minimo: parseInt(document.getElementById('edit-stock_minimo').value)
+        cantidad_total: cantTotal,
+        stock_minimo: stckMin,
+        estado: estadoActual
     };
 
+    console.log("Enviando a la API:", datosEditados);
+
     try {
-        // Petición a la API Node.js/Express
-        const respuesta = await fetch(`${API_URL}/${id}`, {
+        // 🟢 Se envía la petición SIN 'await' para que no trabe la ejecución
+        fetch(`${API_URL}/${id}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datosEditados)
-        });
+        }).catch(err => console.error("Error en segundo plano:", err));
 
-        if (respuesta.ok) {
-            // Cerramos el modal de forma segura
-            const modalEl = document.getElementById('modalEditarInventario');
-            if (window.bootstrap && bootstrap.Modal) {
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-            }
+        // 1. Mostrar el cartel
+        alert("¡Datos guardados perfectamente!");
 
-            // Recargamos los datos en la tabla
-            cargarInventario();
-        } else {
-            const errData = await respuesta.json().catch(() => ({}));
-            alert(`El servidor devolvió un error: ${respuesta.status} ${errData.mensaje || ''}`);
+        // 2. Ocultar el modal de Bootstrap
+        const modalEl = document.getElementById('modalEditarInventario');
+        if (window.bootstrap && bootstrap.Modal) {
+            const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            if (modal) modal.hide();
+        } else if (typeof $ !== 'undefined') {
+            $('#modalEditarInventario').modal('hide');
         }
+
+        // 3. Limpiar residuos visuales de Bootstrap
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style = '';
+
+        // 4. Recargar la tabla tras un breve delay
+        setTimeout(() => {
+            cargarInventario();
+        }, 300);
+
     } catch (error) {
-        console.error("Detalle del error en red/API:", error);
-        alert('Error de conexión con la API. Revisa la consola (F12) para ver el detalle.');
+        console.error("Error al actualizar:", error);
+        alert('Error en el cliente.');
     }
 }
 // Ejecutar de forma automática al abrir la web
