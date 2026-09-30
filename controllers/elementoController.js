@@ -30,23 +30,20 @@ const elementoController = {
     },
 
     // 3. Crear un nuevo elemento (Agregar al stock)
-    createElemento: async (req, res) => {
+createElemento: async (req, res) => {
         try {
-            // Recibimos los datos del formulario (desde el body de la petición)
-            const { nombre, categoria, cantidad_total, stock_minimo } = req.body;
+            console.log("Datos recibidos en req.body:", req.body);
 
-            // Validación básica de campos obligatorios
-            if (!nombre || !categoria || !cantidad_total || !stock_minimo) {
-                return res.status(400).json({ message: 'El campo faltante es obligatorio' });
-            }
+            // Pasamos el objeto req.body completo al modelo
+            const nuevoElemento = await Elemento.create(req.body);
 
-            const nuevoElemento = await Elemento.create(nombre, categoria, cantidad_total, stock_minimo);
-            res.status(201).json({
+            return res.status(201).json({
                 message: 'Elemento creado con éxito',
                 elemento: nuevoElemento
             });
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            console.error("Error en createElemento:", error);
+            return res.status(500).json({ error: error.message });
         }
     },
 
@@ -97,8 +94,6 @@ updateEstadoElemento: async (req, res) => {
         if (!categoria) return res.status(401).send('Falta la CATEGORIA del elemento.');
         if (!cantidad) return res.status(401).send('Falta la CANTIDAD del elemento.');
         if (!minstock) return res.status(401).send('Falta el STOCK MINIMO del elemento.');
-
-
     }
 };
 

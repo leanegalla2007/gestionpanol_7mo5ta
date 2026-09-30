@@ -59,6 +59,7 @@
                         <th>ID</th>
                         <th>Nombre del Elemento</th>
                         <th>Categoría</th>
+                        <th>Estado</th>
                         <th>Cant. en Reparación</th>
                         <th>Stock Disponible</th>
                         <th>Acciones</th>
@@ -141,15 +142,15 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_estado" class="form-label">Estado</label>
+                            <label for="estado" class="form-label">Estado</label>
                             <select id="edit-estado" class="form-select" required>
-                                <option value="" selected disabled>Dejar predefinido</option>
+                                <option selected disabled>Dejar predefinido</option>
                                 <option value="Reparacion">Reparacion</option>
                             </select>
                         </div>
                         <div class="mb-3 d-none" id="contenedor-reparacion">
-                            <label for="edit-cant_reparacion" class="form-label">Cantidad de objetos en reparacion</label>
-                            <input type="number" class="form-control" id="edit-cantidad_reparaciones" min="1" value="1">
+                            <label for="cant_reparacion" class="form-label">Cantidad de objetos en reparacion</label>
+                            <input type="number" class="form-control" id="edit-cant_reparacion" min="1" value="1">
                             <div class="form-text">No puede superar el stock total del elemento.</div>
                         </div>
                         <div class="mb-3">
@@ -206,66 +207,93 @@
         }
         
         function renderizarTablaActivos(lista) {
-            const tbody = document.getElementById('tabla-elementos');
-            if (!tbody) return;
-            
-            tbody.innerHTML = '';
-    
-            if (lista.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">No hay elementos cargados todavía.</td></tr>`;
-                return;
-            }
-    
-            lista.forEach(item => {
-                const badgeColor = item.estado === 'Disponible' ? 'bg-success' : 'bg-warning';
-                const cantidad = item.cantidad_total !== undefined ? item.cantidad_total : 0;
-                const minStock = item.stock_minimo
-                const esCritico = item.cantidad_total <= item.stock_minimo
-                const badgeCantidad = esCritico 
-                ? `<span class="badge bg-danger"> ${item.cantidad_total} (poco stock)</span>`
-                :`<span class="badge bg-success">${item.cantidad_total}</span>`;
-                const claseFila = esCritico ? 'table-warning' : ''
-    
-                tbody.innerHTML += `
-                    <tr class="${claseFila}">
-                        <td>${item.id}</td>
-                        <td><strong class="dato">${item.nombre}</strong></td>
-                        <td><span class="dato">${item.categoria}</span></td>
-                        <td><span class="dato badge ${badgeColor}">${item.estado}</span></td>
-                        <td><strong class="dato text-secondary">${badgeCantidad}</strong></td>
-                        <td><strong class="dato text-secondary">${minStock}</strong></td>
-                        <td><button type="button" class="btn btn-success me-2" data-bs-target="#modalEditarInventario" onclick="ModaleditarInventario(${item.id})">Editar Stock</button></td>
-                    </tr>
-                `;
-            });
-        }
-        
-        function renderizarTablaReparacion(lista) {
-            const tbody = document.getElementById('tabla-reparacion');
-            if (!tbody) return;
+    const tbody = document.getElementById('tabla-elementos');
+    if (!tbody) return;
 
-            tbody.innerHTML = '';
+    tbody.innerHTML = '';
 
-            if (lista.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No hay elementos en estado de reparacion.</td></tr>`;
-                return;
-            }
+    // 1. Filtramos la lista para obtener SOLO los que tienen stock disponible > 0
+    const inventarioActivo = lista.filter(item => {
+        const total = parseInt(item.cantidad_total) || 0;
+        const cantReparacion = parseInt(item.cant_reparacion || item.cant_reparaciones) || 0;
+        const disponible = total - cantReparacion;
+        return total > 0 || disponible > 0;
+    });
 
-            lista.forEach(item => {
-                tbody.innerHTML += `
-                <tr>
-                    <td>${item.id || item.id_elemento}</td>
-                    <td class="fw-bold">${item.nombre}</td>
-                    <td>${item.categoria}</td>
-                    <td><span class="badge bg-danger fs-6">${item.estado}</span></td>
-                    <td><span class="badge bg-danger fs-6">${item.cant_reparacion} || item.cantidad_total</span></td>
-                    <td>${item.cantidad_total}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="ModaleditarInventario(${item.id || item.id_elemento})">Reincorporar</button>    
-                    </td> 
-                </tr>`;
-            });
-        }
+    if (inventarioActivo.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">No hay elementos disponibles en el inventario.</td></tr>`;
+        return;
+    }
+
+    // 2. Iteramos sobre 'inventarioActivo' (la lista ya filtrada)
+    inventarioActivo.forEach(item => {
+        const cantReparacion = item.cant_reparacion || item.cant_reparaciones || 0;
+        const total = parseInt(item.cantidad_total) || 0;
+        const disponible = total; // Calculamos el disponible real
+        const minStock = parseInt(item.stock_minimo) || 0;
+
+        const badgeColor = item.estado === 'Disponible' ? 'bg-success' : 'bg-warning';
+        const esCritico = disponible <= minStock;
+
+        const badgeCantidad = esCritico 
+            ? `<span class="badge bg-danger">${disponible} (poco stock)</span>`
+            : `<span class="badge bg-success">${disponible}</span>`;
+
+        const claseFila = esCritico ? 'table-warning' : '';
+
+        tbody.innerHTML += `
+            <tr class="${claseFila}">
+                <td>${item.id || item.id_elemento}</td>
+                <td><strong class="dato">${item.nombre}</strong></td>
+                <td><span class="dato">${item.categoria}</span></td>
+                <td><span class="dato badge ${badgeColor}">${item.estado}</span></td>
+                <td><strong class="dato text-secondary">${badgeCantidad}</strong></td>
+                <td><strong class="dato text-secondary">${minStock}</strong></td>
+                <td>
+                    <button type="button" class="btn btn-success me-2" onclick="ModaleditarInventario(${item.id || item.id_elemento})">Editar Stock</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function renderizarTablaReparacion(lista) {
+    const tbody = document.getElementById('tabla-reparacion');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    // 1. Filtramos la lista para obtener SOLO los elementos que tienen unidades rotas
+    const inventarioReparacion = lista.filter(item => {
+        const cantReparacion = parseInt(item.cant_reparacion || item.cant_reparaciones) || 0;
+        return cantReparacion > 0 || item.estado === 'Reparacion';
+    });
+
+    if (inventarioReparacion.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No hay elementos en reparación.</td></tr>`;
+        return;
+    }
+
+    // 2. Iteramos sobre 'inventarioReparacion' (la lista ya filtrada)
+    inventarioReparacion.forEach(item => {
+        const cantReparacion = parseInt(item.cant_reparacion || item.cant_reparaciones) || 0;
+        const total = parseInt(item.cantidad_total) || 0;
+        const disponible = Math.max(0, item.cantidad_total - cantReparacion);
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${item.id || item.id_elemento}</td>
+                <td class="fw-bold">${item.nombre}</td>
+                <td>${item.categoria}</td>
+                <td><span class="badge bg-danger fs-6">${item.estado}</span></td>
+                <td><span class="badge bg-danger fs-6">${cantReparacion}</span></td>
+                <td>${disponible}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="reincorporarElemento(${item.id || item.id_elemento})">Reincorporar</button>
+                </td> 
+            </tr>`;
+    });
+}
 
         // 2. LOGICA DEL FORMULARIO DENTRO DEL MODAL
         const formAgregar = document.getElementById('form-elemento'); // Asegúrate que sea el ID de tu <form>
@@ -274,11 +302,12 @@ if (formAgregar) {
     formAgregar.addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        // ⚠️ IMPORTANTE: Usa los IDs exactos de los inputs dentro de este modal
         const nombreVal = document.getElementById('nombre');
         const categoriaVal = document.getElementById('categoria')
         const cantidadVal = parseInt(document.getElementById('cantidad_total').value) || 0;
         const stockMinVal = parseInt(document.getElementById('stock_minimo').value) || 0;
+
+        
 
         if (!nombreVal) {
             alert("El nombre es obligatorio");
@@ -286,14 +315,16 @@ if (formAgregar) {
         }
 
         const nuevoElemento = {
-            nombre: nombreVal,
-            categoria: categoriaVal,
+            nombre: nombreVal ? nombreVal.value.trim(): '',
+            categoria: categoriaVal ? categoriaVal.value: '',
             cantidad_total: cantidadVal,
             stock_minimo: stockMinVal,
+            cant_reparacion: 0,
             estado: 'Disponible'
         };
 
         try {
+            console.log("BODY A ENVIAR:", JSON.stringify(nuevoElemento));
             const respuesta = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -336,68 +367,71 @@ if (formAgregar) {
             }
         });
         
-function ModaleditarInventario(id) {
-    const item = elementosGlobal.find(el => (el.id || el.id_elemento) == id);
+    function ModaleditarInventario(id) {
+        const item = elementosGlobal.find(el => (el.id || el.id_elemento) == id);
 
-    if (!item) {
-        console.error("No se encontró el elemento en la lista local con ID:", id);
-        return;
+        if (!item) {
+            console.error("No se encontró el elemento en la lista local con ID:", id);
+            return;
+        }
+
+        const idReal = item.id || item.id_elemento;
+
+        // Asignamos el ID al input oculto
+        const inputHidden = document.getElementById("edit-id");
+        if (inputHidden) {
+            inputHidden.value = idReal;
+        } else {
+            console.error("Falta el <input type='hidden' id='edit-id'> en el HTML");
+            return;
+        }
+
+        // Llenamos los inputs
+        document.getElementById('edit-nombre').value = item.nombre || '';
+        document.getElementById('edit-categoria').value = item.categoria || '';
+        document.getElementById('edit-cantidad_total').value = item.cantidad_total !== undefined ? item.cantidad_total : 0;
+        document.getElementById('edit-stock_minimo').value = item.stock_minimo !== undefined ? item.stock_minimo : 5;
+        const estadoSelect = document.getElementById('edit-estado');
+        const inputReparacion = document.getElementById('edit-cant_reparacion');
+        const contenedorReparacion = document.getElementById('contenedor-reparacion');
+
+        estadoSelect.value = item.estado || 'Disponible';
+        if (inputReparacion){
+        inputReparacion.max = item.cantidad_total;
+        }
+
+        if (item.estado === 'Reparacion') {
+            contenedorReparacion.classList.remove('d-none');
+            inputReparacion.value = item.cant_reparacion || 1;
+        } else {
+            contenedorReparacion.classList.add('d-none');
+            inputReparacion.value = 0;
+        }
+        // Abrimos el modal usando la API de Bootstrap o jQuery/Atributos
+        const modalEl = document.getElementById('modalEditarInventario');
+        if (window.bootstrap && bootstrap.Modal) {
+            const modalEditar = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modalEditar.show();
+        }
     }
-
-    const idReal = item.id || item.id_elemento;
-
-    // Asignamos el ID al input oculto
-    const inputHidden = document.getElementById("edit-id");
-    if (inputHidden) {
-        inputHidden.value = idReal;
-    } else {
-        console.error("Falta el <input type='hidden' id='edit-id'> en el HTML");
-        return;
-    }
-
-    // Llenamos los inputs
-    document.getElementById('edit-nombre').value = item.nombre || '';
-    document.getElementById('edit-categoria').value = item.categoria || '';
-    document.getElementById('edit-cantidad_total').value = item.cantidad_total !== undefined ? item.cantidad_total : 0;
-    document.getElementById('edit-stock_minimo').value = item.stock_minimo !== undefined ? item.stock_minimo : 5;
-    const estadoSelect = document.getElementById('edit_estado');
-    const inputReparacion = document.getElementById('edit-cant_reparacion');
-    const contenedorReparacion = document.getElementById('contenedor-reparacion');
-
-    estadoSelect.value = item.estado || 'Disponible';
-    if (inputReparacion){
-    inputReparacion.max = item.cantidad_total;
-    }
-
-    if (item.estado === 'reparacion') {
-        contenedorReparacion.classList.remove('d-none');
-        inputReparacion.value = item.cant_reparacion || 1;
-    } else {
-        contenedorReparacion.classList.add('d-none');
-        inputReparacion.value = 0;
-    }
-    // Abrimos el modal usando la API de Bootstrap o jQuery/Atributos
-    const modalEl = document.getElementById('modalEditarInventario');
-    if (window.bootstrap && bootstrap.Modal) {
-        const modalEditar = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modalEditar.show();
-    }
-}
 
 async function guardarEdicion(event) {
     event.preventDefault(); // Evita recargar la página
 
-    const id = document.getElementById('edit-id').value;
+    const idInput = document.getElementById('edit-id');
+    const id = idInput ? idInput.value: null;
 
     if (!id) {
         alert("Error: No se encontró el ID del elemento a actualizar.");
         return;
     }
 
+    const nombre = document.getElementById('edit-nombre').value.trim();
+    const categoria = document.getElementById('edit-categoria').value;
     const cantTotal = parseInt(document.getElementById('edit-cantidad_total').value) || 0;
     const stckMin = parseInt(document.getElementById('edit-stock_minimo').value) || 0;
-    const estadoActual = cantTotal > 0 ? 'Disponible' : 'Agotado';
-    const estadoSeleccionado = document.getElementById('edit_estado').value;
+    const estadoSeleccionado = document.getElementById('edit-estado').value;
+
     let cantReparaciones = 0;
 
     if (estadoSeleccionado === 'Reparacion') {
@@ -412,13 +446,24 @@ async function guardarEdicion(event) {
             return;
         }
     }
+
+    const disponible = cantTotal - cantReparaciones;
+    const estadoActual = estadoSeleccionado || (cantTotal > 0 ? 'Disponible' : 'Agotado');
+
+    let estadoCalculado = 'Disponible';
+    if (cantReparaciones > 0) {
+        estadoCalculado = 'Reparacion';
+    } else if (disponible === 0) {
+        estadoCalculado = 'Agotado';
+    }
+
     const datosEditados = {
         nombre: document.getElementById('edit-nombre').value,
-        categoria: document.getElementById('edit-categoria').value,
-        cantidad_total: cantTotal,
+        categoria: document.getElementById('edit-categoria').value, 
+        cantidad_total: disponible,
         stock_minimo: stckMin,
-        estado: estadoActual,
-        cant_reparaciones: cantReparaciones
+        estado: estadoCalculado,
+        cant_reparacion: cantReparaciones
     };
 
     console.log("Enviando a la API:", datosEditados);

@@ -23,11 +23,24 @@ class Elemento {
     }
 
     // 3. Insertar un nuevo elemento al inventario (tizas, proyectores, etc.)
-    static async create({nombre, categoria, cantidad_total, stock_minimo, estado = 'Disponible'}) {
+    static async create(datos) {
         try {
-            const sql = 'INSERT INTO elementos (nombre, categoria, cantidad_total, stock_minimo, estado) VALUES (?, ?, ?, ?, ?)';
-            const [result] = await db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado]);
-            return { id: result.insertId, nombre, categoria, cantidad_total, stock_minimo, estado };
+            // Aseguramos valores por defecto por si alguna propiedad no viene en el objeto
+            const nombre = datos.nombre || datos.nombre_objeto;
+            const categoria = datos.categoria || '';
+            const cantidad_total = parseInt(datos.cantidad_total) || 0;
+            const cant_reparacion =parseInt(datos.cant_reparacion) || 0;
+            const stock_minimo = parseInt(datos.stock_minimo) || 0;
+            const estado = datos.estado || 'Disponible';
+
+            if (!nombre) {
+                throw new Error("El campo 'nombre' es requerido.");
+            }
+
+            const sql = 'INSERT INTO elementos (nombre, categoria, cantidad_total, cant_reparacion, stock_minimo, estado) VALUES (?, ?, ?, ?, ?, ?)';
+            const [result] = await db.query(sql, [nombre, categoria, cantidad_total, cant_reparacion, stock_minimo, estado]);
+            
+            return { id: result.insertId, nombre, categoria, cantidad_total, cant_reparacion, stock_minimo, estado };
         } catch (error) {
             throw new Error('Error al crear el elemento: ' + error.message);
         }
@@ -44,13 +57,15 @@ class Elemento {
         }
     }
 
-    actualizarStock = (datosStock, callback) => {
-        const {nombre, categoria, cantidad_total, stock_minimo, estado, id} = datosStock;
-        db.query(
-            "UPDATE elementos SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ? WHERE id = ?",
-            [nombre, categoria, cantidad_total, stock_minimo, stock_minimo, estado, id],
-            callback
-        );
+    static async actualizarStock(id, datosStock) {
+        try {
+            const { nombre, categoria, cantidad_total, stock_minimo, estado } = datosStock;
+            const sql = "UPDATE elementos SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ? WHERE id = ?";
+            const [result] = await db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, id]);
+            return result;
+        } catch (error) {
+            throw new Error('Error al actualizar el elemento: ' + error.message);
+        }
     }
 }
 
