@@ -52,11 +52,11 @@ createElemento: async (req, res) => {
 updateEstadoElemento: async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, categoria, cantidad_total, stock_minimo, estado } = req.body;
+        const { nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion = 0 } = req.body;
 
         const sql = `
             UPDATE elementos 
-            SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ? 
+            SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ?
             WHERE id = ?
         `;
 
@@ -68,7 +68,7 @@ updateEstadoElemento: async (req, res) => {
         } 
         
         // Si no es promesa, usamos Callback tradicional
-        db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, id], (err, result) => {
+        db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, id], (err, result) => {
             if (err) {
                 console.error("Error SQL:", err);
                 return res.status(500).json({ error: err.message });
@@ -81,20 +81,7 @@ updateEstadoElemento: async (req, res) => {
         console.error("Error en actualizarElemento:", error);
         return res.status(500).json({ error: error.message });
     }
-},
-
-    editarElemento: (req, res) => {
-
-        const nombre = req.body.nombre;
-        const categoria = req.body.categoria;
-        const cantidad = req.body.cantidad_total === '' || req.body.cantidad_total == null ? null : req.body.cantidad_total
-        const minstock = req.body.stock_minimo === '' || req.body.stock_minimo == null ? null : req.body.stock_minimo
-
-        if (!nombre) return res.status(401).send('Falta el NOMBRE del elemento.');
-        if (!categoria) return res.status(401).send('Falta la CATEGORIA del elemento.');
-        if (!cantidad) return res.status(401).send('Falta la CANTIDAD del elemento.');
-        if (!minstock) return res.status(401).send('Falta el STOCK MINIMO del elemento.');
-    }
+}
 };
 
 module.exports = elementoController;

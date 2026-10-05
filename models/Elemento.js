@@ -59,9 +59,9 @@ class Elemento {
 
     static async actualizarStock(id, datosStock) {
         try {
-            const { nombre, categoria, cantidad_total, stock_minimo, estado } = datosStock;
+            const { nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion = 0 } = datosStock;
             const sql = "UPDATE elementos SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ? WHERE id = ?";
-            const [result] = await db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, id]);
+            const [result] = await db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, id]);
             return result;
         } catch (error) {
             throw new Error('Error al actualizar el elemento: ' + error.message);
