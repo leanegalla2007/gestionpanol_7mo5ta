@@ -59,24 +59,11 @@ updateEstadoElemento: async (req, res) => {
             SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ?
             WHERE id = ?
         `;
+    const parametros = [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, id];
 
-        // Intentamos ejecutarlo como Promesa (mysql2/promise)
-        if (db.promise || typeof db.query.then === 'function') {
-            await db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, id]);
-            console.log("--> [PROMISE] BD Actualizada correctamente");
-            return res.status(200).json({ message: 'Elemento actualizado correctamente' });
-        } 
-        
-        // Si no es promesa, usamos Callback tradicional
-        db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, id], (err, result) => {
-            if (err) {
-                console.error("Error SQL:", err);
-                return res.status(500).json({ error: err.message });
-            }
-            console.log("--> [CALLBACK] BD Actualizada correctamente");
-            return res.status(200).json({ message: 'Elemento actualizado correctamente' });
-        });
-
+    await db.query(sql, parametros);
+    
+    return res.status(200).json({message: 'Elemento actualizado correctamente'});
     } catch (error) {
         console.error("Error en actualizarElemento:", error);
         return res.status(500).json({ error: error.message });

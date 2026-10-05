@@ -103,7 +103,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="stock_minimo" class="form_label">Stock Minimo de Alerta</label>
-                            <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" value="5" min="1" required>
+                            <input type="number" class="form-control" id="stock_minimo" value="5" min="1" required>
                             <small class="text-muted">El sistema avisara cuando la cantidad baje o iguale este numero.</small>
                         </div>
                     </div>
@@ -123,7 +123,7 @@
                     <h5 class="modal-title" id="modalElementoLabel">Editar informacion del Elemento</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form id="form-editar" onsubmit="guardarEdicion(event)">
+                <form id="form-editar" onsubmit="guardarEdicion(event)" novalidate>
                     <div class="modal-body">
                         <div class="mb-3">
                             <input type="hidden" id="edit-id"></input>
@@ -159,7 +159,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="stock_minimo" class="form_label">Stock Minimo de Alerta</label>
-                            <input type="number" class="form-control" id="edit-stock_minimo" name="stock_minimo" value="5" min="1" required>
+                            <input type="number" class="form-control" id="edit-stock_minimo" value="5" min="1" required>
                             <small class="text-muted">El sistema avisara cuando la cantidad baje o iguale este numero.</small>
                         </div>
                         <div class="modal-footer">
@@ -289,14 +289,62 @@ console.log("Elementos recibidos de la API:", lista);
                 <td><span class="badge bg-danger fs-6">${cantReparacion}</span></td>
                 <td>${disponible}</td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick="reincorporarElemento(${item.id || item.id_elemento})">Reincorporar</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="reincorporarElemento('${item.id || item.id_elemento}')">Reincorporar</button>
                 </td> 
             </tr>`;
     });
-}
 
+}
+async function reincorporarElemento(id) {
+    console.log("--> Paso 1: Función ejecutada con ID:", id);
+
+    const elemento = elementosGlobal.find(item => (item.id || item.id_elemento) == id);
+    console.log("--> Paso 2: Elemento encontrado:", elemento);
+
+    if (!elemento) {
+        alert("No se encontró el elemento seleccionado.");
+        return;
+    }
+
+    const confirmacion = confirm(`¿Deseas reincorporar todas las unidades en reparación de "${elemento.nombre}"?`);
+    console.log("--> Paso 3: Confirmación del usuario:", confirmacion);
+    if (!confirmacion) return;
+
+    const datosActualizados = {
+        nombre: elemento.nombre,
+        categoria: elemento.categoria,
+        cantidad_total: elemento.cantidad_total,
+        stock_minimo: elemento.stock_minimo,
+        estado: 'Disponible',
+        cant_reparacion: 0
+    };
+
+    try {
+        console.log("--> Paso 4: Enviando PUT al backend...");
+        const respuesta = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosActualizados)
+        });
+
+        console.log("--> Paso 5: Respuesta del servidor (Status):", respuesta.status, "OK:", respuesta.ok);
+
+        if (!respuesta.ok) {
+            const errorTexto = await respuesta.text();
+            throw new Error(`Error backend (${respuesta.status}): ${errorTexto}`);
+        }
+
+        console.log("--> Paso 6: Mostrando alerta de éxito...");
+        alert(`¡"${elemento.nombre}" reincorporado con éxito!`);
+        await cargarInventario();
+
+    } catch (error) {
+        console.error("--> Paso CATCH (Error atrapado):", error);
+        alert(`Error al reincorporar: ${error.message}`);
+    }
+}
         // 2. LOGICA DEL FORMULARIO DENTRO DEL MODAL
-        const formAgregar = document.getElementById('form-elemento'); // Asegúrate que sea el ID de tu <form>
+const formAgregar = document.getElementById('form-elemento'); // Asegúrate que sea el ID de tu <form>
 
 if (formAgregar) {
     formAgregar.addEventListener('submit', async function(e) {
@@ -483,7 +531,7 @@ async function guardarEdicion(event) {
         });
 
         if (!respuesta.ok) throw new Error(await respuesta.text());
-
+        alert("Datos actualizados con exito!")
         // Ocultar el modal de Bootstrap
         const modalEl = document.getElementById('modalEditarInventario');
         if (window.bootstrap && bootstrap.Modal) {
@@ -499,7 +547,7 @@ async function guardarEdicion(event) {
 
         // Recargamos el inventario INMEDIATAMENTE de forma segura
         await cargarInventario();
-        alert("¡Datos guardados perfectamente!");
+        
 
     } catch (error) {
         console.error("Error al actualizar:", error);
