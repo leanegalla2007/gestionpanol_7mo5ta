@@ -108,7 +108,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-success">Guardar en Base de Datos</button>
                     </div>
                 </form>
@@ -119,7 +119,7 @@
     <div class="modal fade" id="modalEditarInventario" tabindex="-1" aria-labelledby="modalElementoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header bg-success text-white">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="modalElementoLabel">Editar informacion del Elemento</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -163,8 +163,8 @@
                             <small class="text-muted">El sistema avisara cuando la cantidad baje o iguale este numero.</small>
                         </div>
                         <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-success">Guardar cambios</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
                         </div>
                     </div>
                 </form>
@@ -296,46 +296,64 @@ console.log("Elementos recibidos de la API:", lista);
 
 }
 async function reincorporarElemento(id) {
-    console.log("--> Paso 1: Función ejecutada con ID:", id);
 
     const elemento = elementosGlobal.find(item => (item.id || item.id_elemento) == id);
-    console.log("--> Paso 2: Elemento encontrado:", elemento);
 
     if (!elemento) {
         alert("No se encontró el elemento seleccionado.");
         return;
     }
 
-    const confirmacion = confirm(`¿Deseas reincorporar todas las unidades en reparación de "${elemento.nombre}"?`);
-    console.log("--> Paso 3: Confirmación del usuario:", confirmacion);
-    if (!confirmacion) return;
+    const cantEnReparacion = parseInt(elemento.cant_reparacion) || 0;
+    if (cantEnReparacion <= 0) {
+        alert("Esre elemento no tiene unidades en reparacion.");
+        return;
+    }
+
+    const inputCantidad = prompt(
+        `Actualmente hay ${cantEnReparacion} unidad(es) de "${elemento.nombre}" en reparacion. Cuantos unidades deseas reincorporar al stock disponible?`,
+        cantEnReparacion
+    );
+
+    if (inputCantidad === null) return;
+
+    const cantAReincorporar = parseInt(inputCantidad);
+
+    if (isNaN(cantAReincorporar) || cantAReincorporar <= 0) {
+        alert("Ingrese una cantidad valida mayor a 0.");
+    }
+
+    if (cantAReincorporar > cantEnReparacion) {
+        alert(`No puedes reincorporar ${cantAReincorporar} unidades si solo hay ${cantEnReparacion} en reparacion.`);
+        return;
+    }
+
+    const nuevaCantReparacion = cantEnReparacion - cantAReincorporar;
+
+    const nuevoEstado = (nuevaCantReparacion === 0) ? 'Disponible' : 'Reparacion';
 
     const datosActualizados = {
         nombre: elemento.nombre,
         categoria: elemento.categoria,
-        cantidad_total: elemento.cantidad_total,
-        stock_minimo: elemento.stock_minimo,
-        estado: 'Disponible',
-        cant_reparacion: 0
+        cantidad_total: parseInt(elemento.cantidad_total),
+        stock_minimo: parseInt(elemento.stock_minimo),
+        estado: nuevoEstado,
+        cant_reparacion: nuevaCantReparacion
     };
 
     try {
-        console.log("--> Paso 4: Enviando PUT al backend...");
         const respuesta = await fetch(`${API_URL}/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datosActualizados)
         });
 
-        console.log("--> Paso 5: Respuesta del servidor (Status):", respuesta.status, "OK:", respuesta.ok);
-
         if (!respuesta.ok) {
             const errorTexto = await respuesta.text();
             throw new Error(`Error backend (${respuesta.status}): ${errorTexto}`);
         }
 
-        console.log("--> Paso 6: Mostrando alerta de éxito...");
-        alert(`¡"${elemento.nombre}" reincorporado con éxito!`);
+        alert(`¡Se reincorporaron ${cantAReincorporar} unidad(es) de "${elemento.nombre}" al stock disponible`);
         await cargarInventario();
 
     } catch (error) {

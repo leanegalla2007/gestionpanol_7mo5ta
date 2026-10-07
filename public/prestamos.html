@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Préstamos - Pañol</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="indexstyle.css">
 </head>
 <body class="bg-light">
 
@@ -53,7 +54,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tabla-activos">
-                                <tr><td colspan="6" class="text-center py-4">Cargando préstamos activos...</td></tr>
+                                <tr><td colspan="7" class="text-center py-4">Cargando préstamos activos...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -76,13 +77,12 @@
                                 </tr>
                             </thead>
                             <tbody id="tabla-historial">
-                                <tr><td colspan="6" class="text-center py-4">Cargando historial...</td></tr>
+                                <tr><td colspan="7" class="text-center py-4">Cargando historial...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -111,14 +111,37 @@
                             <label for="cantidad_total" class="form-label">Cantidad de objetos que lleva el docente</label>
                             <input type="number" id="cantidad_total" class="form-control" min="1" value="1" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="observaciones" class="form-label">Observaciones (Opcional)</label>
-                            <textarea id="observaciones" class="form-control" rows="2" placeholder="Ej: Se lleva sin control remoto, falta cable HDMI..."></textarea>
-                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-warning fw-bold">Confirmar Préstamo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalPrestamoDevolucion" tabindex="-1" aria-labelledby="modalPrestamoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold" id="modalPrestamoLabel">🔎 Crear Observacion (Opcional)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="form-observacion">
+                    <div class="modal-body">
+                        <input type="hidden" id="idPrestamoDevolver">
+                        <div class="mb-3">
+                            <p id="infoDevolucion" class="fw-semibold text-muted mb-0"></p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observaciones" class="form-label"></label>
+                            <textarea id="observaciones" class="form-control" rows="3" placeholder="Ej: Se lleva sin control remoto, falta cable HDMI..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Confirmar Devolución</button>
                     </div>
                 </form>
             </div>
@@ -139,7 +162,7 @@
                 tabla.innerHTML = '';
 
                 if (datos.length === 0) {
-                    tabla.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No hay ningún elemento afuera. Todo está en el pañol.</td></tr>`;
+                    tabla.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No hay ningún elemento afuera. Todo está en el pañol.</td></tr>`;
                     return;
                 }
 
@@ -152,7 +175,7 @@
                             <td>${p.elemento_nombre}</td>
                             <td><span class="badge bg-secondary">${p.elemento_categoria}</span></td>
                             <td><strong>${p.cantidad}</strong></td>
-                            <td class="text-muted"><em>${p.observaciones || '-'}</em></td>
+                            <td class="text-muted col_observaciones"><em>${p.observaciones || '-'}</em></td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-success fw-bold" onclick="devolverObjeto(${p.id}, ${p.id_elementos})">
                                     ✓ Recibir Devolución
@@ -163,7 +186,7 @@
                 });
             } catch (err) {
                 console.error(err);
-                tabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`;
+                tabla.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`;
             }
         }
 
@@ -176,7 +199,7 @@
                 tabla.innerHTML = '';
 
                 if (datos.length === 0) {
-                    tabla.innerHTML = `<tr><td colspan="6" class="text-center py-4">No hay registros en el historial todavía.</td></tr>`;
+                    tabla.innerHTML = `<tr><td colspan="7" class="text-center py-4">No hay registros en el historial todavía.</td></tr>`;
                     return;
                 }
 
@@ -193,13 +216,13 @@
                             <td><strong>${p.elemento_nombre}</strong></td>
                             <td><span class="badge ${badge}">${p.estado}</span></td>
                             <td><strong>${p.cantidad}</strong></td>
-                            <td class="text-muted"><small>${p.observaciones || '-'}</small></td>
+                            <td class="text-muted col_observaciones"><small>${p.observaciones || '-'}</small></td>
                         </tr>
                     `;
                 });
             } catch (err) {
                 console.error(err);
-                tabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error al cargar historial.</td></tr>`;
+                tabla.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al cargar historial.</td></tr>`;
             }
         }
 
@@ -269,27 +292,61 @@
         });
 
         // 5. ACCIÓN DE RECIBIR LA DEVOLUCIÓN (PUT)
-        async function devolverObjeto(prestamoId, elementoId) {
-            if (!confirm('¿Confirmás que el docente devolvió el elemento en buen estado?')) return;
+        async function devolverObjeto(PrestamoId) {
+            // 1. Buscas el préstamo en tu array global
+            const prestamo = prestamosGlobal.find(p => p.id == idPrestamo);
+            if (!prestamo) return;
 
-            try {
-                const res = await fetch(`http://localhost:3000/api/prestamos/${prestamoId}/devolucion`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_elementos: elementoId })
-                });
+            // 2. Le guardas el ID al input oculto
+            document.getElementById('idPrestamoDevolver').value = idPrestamo;
 
-                if (res.ok) {
-                    alert('¡Devolución asentada! El objeto vuelve a estar disponible.');
-                    cargarPrestamosActivos();
-                } else {
-                    alert('No se pudo procesar la devolución.');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Error de conexión.');
-            }
+            // 3. Muestras la información de qué se está devolviendo
+            document.getElementById('infoDevolucion').innerText = 
+                `Elemento: ${prestamo.elemento} | Docente: ${prestamo.docente}`;
+
+            // 4. Limpias el campo de texto de observaciones
+            document.getElementById('observaciones').value = '';
+
+            // 5. Abres el modal de Bootstrap
+            const modal = new bootstrap.Modal(document.getElementById('modalPrestamoDevolucion'));
+            modal.show();
+
         }
+
+    document.getElementById('form-observacion').addEventListener('submit', async (e) => {
+    e.preventDefault(); // Evita que la página se recargue
+
+    // 1. Lees los datos del modal
+    const idPrestamo = document.getElementById('idPrestamoDevolver').value;
+    const observaciones = document.getElementById('observaciones').value;
+
+    try {
+        // 2. Haces el fetch al backend con las observaciones
+        const respuesta = await fetch(`${API_URL_PRESTAMOS}/devolver/${idPrestamo}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ observaciones })
+        });
+
+        if (!respuesta.ok) {
+            throw new Error("Error al procesar la devolución");
+        }
+
+        // 3. Cierras el modal
+        const modalElement = document.getElementById('modalPrestamoDevolucion');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) modalInstance.hide();
+
+        alert("¡Devolución registrada con éxito!");
+
+        // 4. Recargas la tabla para ver reflejada la devolución y la observación
+        await cargarTablaPrestamos();
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Ocurrió un error al registrar la devolución.");
+    }
+});
 
         document.getElementById('input-busqueda').addEventListener('input', function (e) {
             const textoBusqueda = e.target.value.toLowerCase().trim();

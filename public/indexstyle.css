@@ -10,3 +10,15 @@
     object-fit: cover;
     object-position: center;
 }
+
+.col_observaciones { 
+    /* 1. Respeta los 'Enter' (saltos de línea) del textarea */
+    white-space: pre-wrap; 
+    
+    /* 2. Corta texto largo sin espacios para que no deforme la tabla */
+    overflow-wrap: break-word; 
+    word-break: break-word; 
+    
+    /* 3. Le da un ancho máximo relativo para forzar el salto de renglón */
+    max-width: 300px; 
+}
