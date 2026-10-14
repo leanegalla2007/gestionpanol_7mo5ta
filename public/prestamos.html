@@ -131,6 +131,7 @@
                 <form id="form-observacion">
                     <div class="modal-body">
                         <input type="hidden" id="idPrestamoDevolver">
+                        <input type="hidden" id="idElementoDevolver">
                         <div class="mb-3">
                             <p id="infoDevolucion" class="fw-semibold text-muted mb-0"></p>
                         </div>
@@ -152,13 +153,14 @@
 
     <script>
         const API_URL = 'http://localhost:3000/api/prestamos';
-
+        let prestamosGlobal = []
         // 1. CARGAR PRÉSTAMOS ACTIVOS (LO QUE ESTÁ AFUERA)
         async function cargarPrestamosActivos() {
             const tabla = document.getElementById('tabla-activos');
             try {
                 const res = await fetch(`${API_URL}/activos`);
                 const datos = await res.json();
+                prestamosGlobal = datos
                 tabla.innerHTML = '';
 
                 if (datos.length === 0) {
@@ -294,15 +296,19 @@
         // 5. ACCIÓN DE RECIBIR LA DEVOLUCIÓN (PUT)
         async function devolverObjeto(PrestamoId) {
             // 1. Buscas el préstamo en tu array global
-            const prestamo = prestamosGlobal.find(p => p.id == idPrestamo);
+            const prestamo = prestamosGlobal.find(p => p.id == PrestamoId);
             if (!prestamo) return;
 
+            
             // 2. Le guardas el ID al input oculto
-            document.getElementById('idPrestamoDevolver').value = idPrestamo;
+            document.getElementById('idPrestamoDevolver').value = PrestamoId;
+            const idElementos = prestamo.id_elementos;
+            document.getElementById('idElementoDevolver').value = idElementos;
 
             // 3. Muestras la información de qué se está devolviendo
             document.getElementById('infoDevolucion').innerText = 
-                `Elemento: ${prestamo.elemento} | Docente: ${prestamo.docente}`;
+                `Elemento: ${prestamo.elemento_nombre}. 
+                Docente: ${prestamo.docente_nombre} ${prestamo.docente_apellido}`;
 
             // 4. Limpias el campo de texto de observaciones
             document.getElementById('observaciones').value = '';
@@ -318,14 +324,17 @@
 
     // 1. Lees los datos del modal
     const idPrestamo = document.getElementById('idPrestamoDevolver').value;
-    const observaciones = document.getElementById('observaciones').value;
-
+    const idElemento = document.getElementById('idElementoDevolver').value;
+    const textoObservaciones = document.getElementById('observaciones').value;
+    console.log("Texto capturado antes del fetch:", textoObservaciones  );
     try {
         // 2. Haces el fetch al backend con las observaciones
-        const respuesta = await fetch(`${API_URL_PRESTAMOS}/devolver/${idPrestamo}`, {
+        const respuesta = await fetch(`http://localhost:3000/api/prestamos/${idPrestamo}/devolucion`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ observaciones })
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ 
+                observaciones: textoObservaciones, 
+                id_elementos: idElemento })
         });
 
         if (!respuesta.ok) {
@@ -340,7 +349,7 @@
         alert("¡Devolución registrada con éxito!");
 
         // 4. Recargas la tabla para ver reflejada la devolución y la observación
-        await cargarTablaPrestamos();
+        await cargarPrestamosActivos();
 
     } catch (error) {
         console.error("Error:", error);

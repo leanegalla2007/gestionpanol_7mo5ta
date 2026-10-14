@@ -61,12 +61,14 @@ class Prestamo {
     }
 
     // 4. Finalizar un préstamo (Devolución)
-    static async finalizar(id) {
+    static async finalizar(id, observaciones) {
         try {
             const sql = `UPDATE prestamos 
-                         SET estado = 'Devuelto', fechayhora_devolucion = CURRENT_TIMESTAMP 
+                         SET estado = 'Devuelto', 
+                         fechayhora_devolucion = CURRENT_TIMESTAMP, 
+                         observaciones = ?
                          WHERE id = ?`;
-            const [result] = await db.query(sql, [id]);
+            const [result] = await db.query(sql, [observaciones, id]);
             return result.affectedRows > 0;
         } catch (error) {
             throw new Error('Error al finalizar el préstamo: ' + error.message);
