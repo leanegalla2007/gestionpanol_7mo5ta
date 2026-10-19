@@ -65,7 +65,7 @@ const prestamoController = {
     devolverPrestamo: async (req, res) => {
         try {
             const { id } = req.params; // ID del préstamo
-            const { id_elementos } = req.body; // Necesitamos el ID del elemento para volver a ponerlo disponible
+            const { id_elementos, observaciones } = req.body; // Necesitamos el ID del elemento para volver a ponerlo disponible
             
             if (!id_elementos) {
                 return res.status(400).json({ message: 'El ID del elemento es requerido para la devolución.' });
@@ -86,7 +86,7 @@ const prestamoController = {
             
             console.log("Datos recibidos para devolución -> ID Préstamo:", id, "| ID Elemento:", id_elementos);
             // 1. Finalizar el préstamo
-            const finalizado = await Prestamo.finalizar(id);
+            const finalizado = await Prestamo.finalizar(id, observaciones);
             if (!finalizado) {
                 return res.status(404).json({ message: 'No se encontró el préstamo especificado.' });
             }

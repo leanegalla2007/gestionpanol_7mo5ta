@@ -35,18 +35,23 @@
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
-                        <th>Nombre del Elemento</th>
-                        <th>Categoría</th>
-                        <th>Estado</th>
-                        <th>Cantidad (unidades)</th>
-                        <th>Min. Stock</th>
-                        <th>Acciones</th>
+                        <th class="text-center">Nombre del Elemento</th>
+                        <th class="text-center">Categoría</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Cantidad (unidades)</th>
+                        <th class="text-center">Min. Stock</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tabla-elementos">
                     <!-- Se llena con JavaScript -->
                 </tbody>
             </table>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <button class="btn btn-outline-secondary" id="btn-ant-elem" onclick="cambiarPaginaElementos(-1)">Anterior</button>
+                <span id="info-pagina-elem" class="fw-bold">Página 1 de 1</span>
+                <button class="btn btn-outline-secondary" id="btn-sig-elem" onclick="cambiarPaginaElementos(1)">Siguiente</button>
+            </div>
         </div>
     </div>
 
@@ -57,12 +62,12 @@
                 <thead class="table-warning">
                     <tr>
                         <th>ID</th>
-                        <th>Nombre del Elemento</th>
-                        <th>Categoría</th>
-                        <th>Estado</th>
-                        <th>Cant. en Reparación</th>
-                        <th>Stock Disponible</th>
-                        <th>Acciones</th>
+                        <th class="text-center">Nombre del Elemento</th>
+                        <th class="text-center">Categoría</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Cant. en Reparación</th>
+                        <th class="text-center">Stock Disponible</th>
+                        <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tabla-reparacion">
@@ -173,9 +178,12 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+    
     <script>
         let elementosGlobal = [];
+        let paginaActualElementos = 1;
+        let listaElementosCompleta = []; // Guardamos la respuesta original de la API
+        const limitePorPagina = 10;
         const API_URL = 'http://localhost:3000/api/elementos';
 
         // 1. FUNCIÓN PARA OBTENER LAS ROWS Y REDIBUJAR LA TABLA ANCHA
@@ -207,32 +215,45 @@
         }
         
         function renderizarTablaActivos(lista) {
+        listaElementosCompleta = lista;
     const tbody = document.getElementById('tabla-elementos');
     if (!tbody) return;
 
     tbody.innerHTML = '';
 
-    // 1. Filtramos la lista para obtener SOLO los que tienen stock disponible > 0
-    const inventarioActivo = lista.filter(item => {
+    // 1. Función que devuelve EL NÚMERO de unidades disponibles reales
+    const obtenerDisponible = (item) => {
         const total = parseInt(item.cantidad_total) || 0;
-        const cantReparacion = parseInt(item.cant_reparacion) || 0;
+        const cantReparacion = parseInt(item.cant_reparacion || item.cant_reparaciones) || 0;
         const disponible = total - cantReparacion;
-        return disponible > 0;
-    });
+        return disponible > 0 ? disponible : 0;
+    };
+
+    // 2. Filtramos la lista evaluando que el NÚMERO disponible sea mayor a 0
+    const inventarioActivo = lista.filter(item => obtenerDisponible(item) > 0);
 
     if (inventarioActivo.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">No hay elementos disponibles en el inventario.</td></tr>`;
+        actualizarControlesPaginacion(0,0);
         return;
     }
 
-    // 2. Iteramos sobre 'inventarioActivo' (la lista ya filtrada)
-    inventarioActivo.forEach(item => {
-        const cantReparacion = parseInt(item.cant_reparacion) || 0;
-        const total = parseInt(item.cantidad_total) || 0;
-        const disponible = total - cantReparacion; // Calculamos el disponible real
-        const minStock = parseInt(item.stock_minimo) || 0;
+    // --- LÓGICA DE PAGINACIÓN ---
+    const totalPaginas = Math.ceil(inventarioActivo.length / limitePorPagina);
+    
+    // Ajuste por si estamos fuera de rango
+    if (paginaActualElementos > totalPaginas) paginaActualElementos = totalPaginas;
+    if (paginaActualElementos < 1) paginaActualElementos = 1;
 
-        const badgeColor = item.estado === 'Disponible' ? 'bg-success' : 'bg-warning';
+    const inicio = (paginaActualElementos - 1) * limitePorPagina;
+    const fin = inicio + limitePorPagina;
+    const elementosPagina = inventarioActivo.slice(inicio, fin);
+    // 3. Iteramos sobre los elementos filtrados
+    elementosPagina.forEach(item => {
+        const disponible = obtenerDisponible(item); // Ahora sí es un número real (ej: 30, 29, etc.)
+        const minStock = parseInt(item.stock_minimo) || 0;
+        const cantReparacion = parseInt(item.cant_reparacion || item.cant_reparaciones) || 0;
+
         const esCritico = disponible <= minStock;
 
         const badgeCantidad = esCritico 
@@ -241,20 +262,41 @@
 
         const claseFila = esCritico ? 'table-warning' : '';
 
+        // Detalle por si hay unidades en reparación
+        const textoReparacion = cantReparacion > 0 
+            ? `<small class="d-block text-muted">(${cantReparacion} en rep.)</small>` 
+            : '';
+
         tbody.innerHTML += `
             <tr class="${claseFila}">
                 <td>${item.id || item.id_elemento}</td>
-                <td><strong class="dato">${item.nombre}</strong></td>
-                <td><span class="dato">${item.categoria}</span></td>
-                <td><span class="dato badge ${badgeColor}">${item.estado}</span></td>
-                <td><strong class="dato text-secondary">${badgeCantidad}</strong></td>
-                <td><strong class="dato text-secondary">${minStock}</strong></td>
-                <td>
+                <td class="text-center"><strong class="dato">${item.nombre}</strong></td>
+                <td class="text-center"><span class="dato">${item.categoria}</span></td>
+                <td class="text-center"><span class="dato badge bg-success">Disponible</span></td>
+                <td class="text-center"><strong class="dato text-secondary">${badgeCantidad}</strong>${textoReparacion}</td>
+                <td class="text-center"><strong class="dato text-secondary">${minStock}</strong></td>
+                <td class="text-center">
                     <button type="button" class="btn btn-success me-2" onclick="ModaleditarInventario(${item.id || item.id_elemento})">Editar Stock</button>
                 </td>
             </tr>`;
-        });
-    }
+    });
+    actualizarControlesPaginacion(paginaActualElementos, totalPaginas);
+}
+
+function cambiarPaginaElementos(direccion) {
+    paginaActualElementos += direccion;
+    renderizarTablaActivos(listaElementosCompleta);
+}
+
+function actualizarControlesPaginacion(pagina, totalPaginas) {
+    const info = document.getElementById('info-pagina-elem');
+    const btnAnt = document.getElementById('btn-ant-elem');
+    const btnSig = document.getElementById('btn-sig-elem');
+
+    if (info) info.textContent = `Página ${pagina} de ${totalPaginas || 1}`;
+    if (btnAnt) btnAnt.disabled = (pagina <= 1);
+    if (btnSig) btnSig.disabled = (pagina >= totalPaginas || totalPaginas === 0);
+}
 
 function renderizarTablaReparacion(lista) {
     const tbody = document.getElementById('tabla-reparacion');
@@ -283,12 +325,12 @@ console.log("Elementos recibidos de la API:", lista);
         tbody.innerHTML += `
             <tr>
                 <td>${item.id || item.id_elemento}</td>
-                <td class="fw-bold">${item.nombre}</td>
-                <td>${item.categoria}</td>
-                <td><span class="badge bg-danger fs-6">${item.estado}</span></td>
-                <td><span class="badge bg-danger fs-6">${cantReparacion}</span></td>
-                <td>${disponible}</td>
-                <td>
+                <td class="fw-bold text-center">${item.nombre}</td>
+                <td class="text-center">${item.categoria}</td>
+                <td class="text-center"><span class="badge bg-danger fs-6">${item.estado}</span></td>
+                <td class="text-center"><span class="badge bg-danger fs-6">${cantReparacion}</span></td>
+                <td class="text-center">${disponible}</td>
+                <td class="text-center">
                     <button type="button" class="btn btn-sm btn-primary" onclick="reincorporarElemento('${item.id || item.id_elemento}')">Reincorporar</button>
                 </td> 
             </tr>`;
@@ -306,7 +348,7 @@ async function reincorporarElemento(id) {
 
     const cantEnReparacion = parseInt(elemento.cant_reparacion) || 0;
     if (cantEnReparacion <= 0) {
-        alert("Esre elemento no tiene unidades en reparacion.");
+        alert("Este elemento no tiene unidades en reparacion.");
         return;
     }
 

@@ -45,16 +45,15 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>Fecha Salida</th>
-                                    <th>Docente</th>
-                                    <th>Elemento</th>
-                                    <th>Categoría</th>
-                                    <th>Cant. llevada</th>
-                                    <th>Observaciones</th>
+                                    <th class="text-center">Docente</th>
+                                    <th class="text-center">Elemento</th>
+                                    <th class="text-center">Categoría</th>
+                                    <th class="text-center">Cant. llevada</th>
                                     <th class="text-center">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-activos">
-                                <tr><td colspan="7" class="text-center py-4">Cargando préstamos activos...</td></tr>
+                                <tr><td colspan="6d" class="text-center py-4">Cargando préstamos activos...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -69,11 +68,11 @@
                                 <tr>
                                     <th>Fecha Salida</th>
                                     <th>Fecha Devolución</th>
-                                    <th>Docente</th>
-                                    <th>Elemento</th>
-                                    <th>Estado</th>
-                                    <th>Cant. llevada</th>
-                                    <th>Observaciones</th>
+                                    <th class="text-center">Docente</th>
+                                    <th class="text-center">Elemento</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-center">Cant. llevada</th>
+                                    <th class="text-center">Observaciones</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-historial">
@@ -173,11 +172,10 @@
                     tabla.innerHTML += `
                         <tr>
                             <td>${fecha}</td>
-                            <td><strong>${p.docente_apellido}, ${p.docente_nombre}</strong></td>
-                            <td>${p.elemento_nombre}</td>
-                            <td><span class="badge bg-secondary">${p.elemento_categoria}</span></td>
-                            <td><strong>${p.cantidad}</strong></td>
-                            <td class="text-muted col_observaciones"><em>${p.observaciones || '-'}</em></td>
+                            <td class="text-center"><strong>${p.docente_apellido}, ${p.docente_nombre}</strong></td>
+                            <td class="text-center">${p.elemento_nombre}</td>
+                            <td class="text-center"><span class="badge bg-secondary">${p.elemento_categoria}</span></td>
+                            <td class="text-center"><strong>${p.cantidad}</strong></td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-success fw-bold" onclick="devolverObjeto(${p.id}, ${p.id_elementos})">
                                     ✓ Recibir Devolución
@@ -188,7 +186,7 @@
                 });
             } catch (err) {
                 console.error(err);
-                tabla.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`;
+                tabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`;
             }
         }
 
@@ -214,11 +212,11 @@
                         <tr>
                             <td>${fSalida}</td>
                             <td>${fDevolucion}</td>
-                            <td>${p.docente_apellido}, ${p.docente_nombre}</td>
-                            <td><strong>${p.elemento_nombre}</strong></td>
-                            <td><span class="badge ${badge}">${p.estado}</span></td>
-                            <td><strong>${p.cantidad}</strong></td>
-                            <td class="text-muted col_observaciones"><small>${p.observaciones || '-'}</small></td>
+                            <td class="text-center">${p.docente_apellido}, ${p.docente_nombre}</td>
+                            <td class="text-center"><strong>${p.elemento_nombre}</strong></td>
+                            <td class="text-center"><span class="badge ${badge}">${p.estado}</span></td>
+                            <td class="text-center"><strong>${p.cantidad}</strong></td>
+                            <td class="text-center text-muted col_observaciones"><small>${p.observaciones || '-'}</small></td>
                         </tr>
                     `;
                 });
@@ -232,7 +230,7 @@
         async function prepararFormulario() {
             const selectDocente = document.getElementById('select-docente');
             const selectElemento = document.getElementById('select-elemento');
-            const observaciones = document.getElementById('observaciones');
+            // const observaciones = document.getElementById('observaciones');
 
             try {
                 // Traer Docentes

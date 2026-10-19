@@ -5,7 +5,13 @@ class Elemento {
     // 1. Obtener todos los elementos del pañol
     static async getAll() {
         try {
-            const [rows] = await db.query('SELECT * FROM elementos');
+            const sql = `
+            SELECT 
+                *,
+                (cantidad_total - COALESCE(cant_reparacion, 0)) AS estado
+            FROM elementos
+        `;
+            const [rows] = await db.query(sql);
             return rows;
         } catch (error) {
             throw new Error('Error al obtener los elementos: ' + error.message);
@@ -32,6 +38,7 @@ class Elemento {
             const cant_reparacion =parseInt(datos.cant_reparacion) || 0;
             const stock_minimo = parseInt(datos.stock_minimo) || 0;
             const estado = datos.estado || 'Disponible';
+
 
             if (!nombre) {
                 throw new Error("El campo 'nombre' es requerido.");
