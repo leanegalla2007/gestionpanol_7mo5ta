@@ -163,7 +163,7 @@
                 tabla.innerHTML = '';
 
                 if (datos.length === 0) {
-                    tabla.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">No hay ningún elemento afuera. Todo está en el pañol.</td></tr>`;
+                    tabla.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No hay ningún elemento afuera. Todo está en el pañol.</td></tr>`;
                     return;
                 }
 
@@ -248,10 +248,16 @@
                 
                 // IMPORTANTE: Solo dejamos seleccionar elementos cuyo estado sea 'Disponible'
                 elementos.forEach(e => {
-                    if (e.estado === 'Disponible') {
-                        selectElemento.innerHTML += `<option value="${e.id}">${e.nombre}: (cantidad restante: ${e.cantidad_total}) | (${e.categoria})</option>`;
+                    const total = parseInt(e.cantidad_total) || 0;
+                    const reparacion = parseInt(e.cant_reparacion) || 0;
+                    const disponible = total - reparacion;
+
+                    if (disponible > 0) {
+                        selectElemento.innerHTML += `<option value="${e.id}">${e.elemento_nombre}: (cantidad restante: ${e.cantidad_total}) | (${e.categoria})</option>`;
                     }
+                    
                 });
+                
             } catch (err) {
                 console.error(err);
                 alert('Error al cargar la lista de docentes o elementos.');
