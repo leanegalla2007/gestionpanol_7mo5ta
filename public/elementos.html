@@ -10,7 +10,7 @@
 
     <div class="container-fluid px-5 my-5">
         <a href="/" class="btn btn-outline-secondary mb-3">Volver al Menú Principal</a>
-        <h1 class="text-center mb-4">Gestión de Pañol - Preceptoría</h1>
+        <h1 class="text-center mb-4">Gestión Pañol - Preceptoría</h1>
         
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="text-secondary mb-0">Inventario Completo</h4>
@@ -43,9 +43,7 @@
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="tabla-elementos">
-                    <!-- Se llena con JavaScript -->
-                </tbody>
+                <tbody id="tabla-elementos"></tbody>
             </table>
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <button class="btn btn-outline-secondary" id="btn-ant-elem" onclick="cambiarPaginaElementos(-1)">Anterior</button>
@@ -70,10 +68,13 @@
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="tabla-reparacion">
-                    <!-- Se llena con JavaScript -->
-                </tbody>
+                <tbody id="tabla-reparacion"></tbody>
             </table>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+            <button class="btn btn-outline-secondary" id="btn-ant-elem-rep" onclick="cambiarPaginaReparacion(-1)">Anterior</button>
+            <span id="info-pagina-rep" class="fw-bold">Página 1 de 1</span>
+            <button class="btn btn-outline-secondary" id="btn-sig-elem-rep" onclick="cambiarPaginaReparacion(1)">Siguiente</button>
+            </div>
         </div>
     </div>
 </div>
@@ -182,7 +183,9 @@
     <script>
         let elementosGlobal = [];
         let paginaActualElementos = 1;
-        let listaElementosCompleta = []; // Guardamos la respuesta original de la API
+        let paginaActualReparacion = 1;
+        let listaElementosCompleta = [];
+        let listaReparacionCompleta = [] // Guardamos la respuesta original de la API
         const limitePorPagina = 10;
         const API_URL = 'http://localhost:3000/api/elementos';
 
@@ -292,13 +295,18 @@ function actualizarControlesPaginacion(pagina, totalPaginas) {
     const info = document.getElementById('info-pagina-elem');
     const btnAnt = document.getElementById('btn-ant-elem');
     const btnSig = document.getElementById('btn-sig-elem');
+    // const btnSigRep = document.getElementById('btn-sig-elem-rep');
+    // const btnAntRep = document.getElementById('btn-ant-elem-rep');
 
     if (info) info.textContent = `Página ${pagina} de ${totalPaginas || 1}`;
     if (btnAnt) btnAnt.disabled = (pagina <= 1);
     if (btnSig) btnSig.disabled = (pagina >= totalPaginas || totalPaginas === 0);
+//     if (btnAntRep) btnAntRep.disabled = (pagina <= 1);
+//     if (btnSigRep) btnSigRep.disabled = (pagina >= totalPaginas || totalPaginas === 0);
 }
 
 function renderizarTablaReparacion(lista) {
+listaReparacionCompleta = lista
     const tbody = document.getElementById('tabla-reparacion');
     if (!tbody) return;
 
@@ -310,14 +318,24 @@ console.log("Elementos recibidos de la API:", lista);
         return cantReparacion > 0;
         // || item.estado == 'Reparacion'; 
     });
-
+    
+    
     if (inventarioReparacion.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No hay elementos en reparación.</td></tr>`;
         return;
     }
+    
+        const totalPaginasRep = Math.ceil(inventarioReparacion.length / limitePorPagina);
+    
+        if (paginaActualReparacion > totalPaginasRep) paginaActualReparacion = totalPaginasRep;
+        if (paginaActualReparacion < 1) paginaActualReparacion = 1;
+    
+        const inicio = (paginaActualReparacion - 1) * limitePorPagina;
+        const fin = inicio + limitePorPagina;
+        const elementosPaginaRep = inventarioReparacion.slice (inicio, fin);
 
     // 2. Iteramos sobre 'inventarioReparacion' (la lista ya filtrada)
-    inventarioReparacion.forEach(item => {
+    elementosPaginaRep.forEach(item => {
         const cantReparacion = parseInt(item.cant_reparacion || item.cant_reparaciones) || 0;
         const total = parseInt(item.cantidad_total) || 0;
         const disponible = Math.max(0, item.cantidad_total - cantReparacion);
@@ -334,9 +352,26 @@ console.log("Elementos recibidos de la API:", lista);
                     <button type="button" class="btn btn-sm btn-primary" onclick="reincorporarElemento('${item.id || item.id_elemento}')">Reincorporar</button>
                 </td> 
             </tr>`;
-    });
+        });
+        actualizarControlesPaginacionRep(paginaActualReparacion, totalPaginasRep)
+    }
 
-}
+    function cambiarPaginaReparacion(direccion) {
+        paginaActualReparacion += direccion;
+        renderizarTablaReparacion (listaReparacionCompleta);
+    }
+
+    function actualizarControlesPaginacionRep (pagina, total){
+        const info = document.getElementById('info-pagina-rep')
+        const btnAntRep = document.getElementById('btn-ant-elem-rep')
+        const btnSigRep = document.getElementById('btn-sig-elem-rep')
+
+        if (info) info.textContent = `Pagina ${pagina} de ${total || 1}`;
+        if (btnAntRep) btnAntRep.disabled = (pagina <= 1);
+        if (btnSigRep) btnSigRep.disabled = (pagina >= total || total === 0);
+    }
+
+
 async function reincorporarElemento(id) {
 
     const elemento = elementosGlobal.find(item => (item.id || item.id_elemento) == id);

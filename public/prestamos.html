@@ -17,10 +17,10 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <ul class="nav nav-pills" id="prestamosTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="activos-tab" data-bs-toggle="tab" data-bs-target="#activos" type="button" role="tab" onclick="cargarPrestamosActivos()">⚠️ En uso (Activos)</button>
+                    <button class="nav-link active" id="activos-tab" data-bs-toggle="tab" data-bs-target="#activos" type="button" role="tab" onclick="renderizarTablasPrestamosAct()">⚠️ En uso (Activos)</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab" onclick="cargarHistorial()">📜 Historial Completo</button>
+                    <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab" onclick="renderizarTablasPrestamosHis()">📜 Historial Completo</button>
                 </li>
             </ul>
 
@@ -56,6 +56,11 @@
                                 <tr><td colspan="6d" class="text-center py-4">Cargando préstamos activos...</td></tr>
                             </tbody>
                         </table>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <button class="btn btn-outline-secondary" id="btn-ant-pres-act" onclick="cambiarPaginaPrestamos(-1)">Anterior</button>
+                            <span id="info-pagina-pres-act" class="fw-bold">Página 1 de 1</span>
+                            <button class="btn btn-outline-secondary" id="btn-sig-pres-act" onclick="cambiarPaginaPrestamos(1)">Siguiente</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -79,6 +84,11 @@
                                 <tr><td colspan="7" class="text-center py-4">Cargando historial...</td></tr>
                             </tbody>
                         </table>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <button class="btn btn-outline-secondary" id="btn-ant-pres-his" onclick="cambiarPaginaPrestamos(-1)">Anterior</button>
+                            <span id="info-pagina-pres-his" class="fw-bold">Página 1 de 1</span>
+                            <button class="btn btn-outline-secondary" id="btn-sig-pres-his" onclick="cambiarPaginaPrestamos(1)">Siguiente</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -153,28 +163,58 @@
     <script>
         const API_URL = 'http://localhost:3000/api/prestamos';
         let prestamosGlobal = []
+        let paginaActualPrestamosAct = 1;
+        let paginaActualPrestamosHis = 1;
+        let listaActivosCompleta = [];
+        let listaHistorialCompleta = [];
+        const limitePorPagina = 10;
         // 1. CARGAR PRÉSTAMOS ACTIVOS (LO QUE ESTÁ AFUERA)
         async function cargarPrestamosActivos() {
-            const tabla = document.getElementById('tabla-activos');
             try {
                 const res = await fetch(`${API_URL}/activos`);
                 const datos = await res.json();
-                prestamosGlobal = datos
-                tabla.innerHTML = '';
+                prestamosGlobal = Array.isArray(datos) ? datos : [];
+                
+                renderizarTablasPrestamosAct();
 
-                if (datos.length === 0) {
-                    tabla.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No hay ningún elemento afuera. Todo está en el pañol.</td></tr>`;
-                    return;
+            }catch(err) {
+                console.error("error al conectar con la API:", err);
+                const tabla = document.getElementById('tabla-activos');
+                if (tabla) {
+                    tabla.innerHTML = `<tr><td colspan='6' class='text-center text-danger py-4'>Error al conectar con la API.</td></tr>`;
                 }
+            }
+        }
 
-                datos.forEach(p => {
+        function renderizarTablasPrestamosAct(lista) {
+            listaActivosCompleta = lista;
+            const tabla = document.getElementById('tabla-activos');
+            if (!tabla) return;
+                    
+            tabla.innerHTML = '';
+            if (prestamosGlobal.length === 0) {
+                tabla.innerHTML = `<tr><td colspan='6' class='text-center py-4 text-muted'>No hay ningun elemento afuera. Todo esta en el pañol.</td></tr>`;
+                actualizarControlesPaginacion(0, 0);
+                return;
+            }
+
+                const totalPaginas = Math.ceil(prestamosGlobal.length / limitePorPagina);
+
+                if (paginaActualPrestamosAct > totalPaginas) paginaActualPrestamosAct = totalPaginas;
+                if (paginaActualPrestamosAct < 1) paginaActualPrestamosAct = 1;
+
+                const inicio = (paginaActualPrestamosAct - 1) * limitePorPagina;
+                const fin = inicio + limitePorPagina;
+                const elementosPagina = prestamosGlobal.slice(inicio, fin);
+
+                elementosPagina.forEach(p => {
                     const fecha = new Date(p.fechayhora_salida).toLocaleString('es-AR');
                     tabla.innerHTML += `
                         <tr>
                             <td>${fecha}</td>
                             <td class="text-center"><strong>${p.docente_apellido}, ${p.docente_nombre}</strong></td>
                             <td class="text-center">${p.elemento_nombre}</td>
-                            <td class="text-center"><span class="badge bg-secondary">${p.elemento_categoria}</span></td>
+                            <td class="text-center"><span class="badge bg-primary">${p.elemento_categoria}</span></td>
                             <td class="text-center"><strong>${p.cantidad}</strong></td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-success fw-bold" onclick="devolverObjeto(${p.id}, ${p.id_elementos})">
@@ -184,10 +224,24 @@
                         </tr>
                     `
                 });
-            } catch (err) {
-                console.error(err);
-                tabla.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`;
-            }
+                actualizarControlesPaginacion(paginaActualPrestamosAct, totalPaginas);
+            }   
+        
+        
+
+        function cambiarPaginaPrestamos(direccion) {
+            paginaActualPrestamosAct += direccion;
+            cargarPrestamosActivos(listaActivosCompleta);
+        }
+
+        function actualizarControlesPaginacion(pagina, totalPaginas) {
+            const info = document.getElementById('info-pagina-pres-act');
+            const btnAnt = document.getElementById('btn-ant-pres-act');
+            const btnSig = document.getElementById('btn-sig-pres-act');
+
+            if (info) info.textContent = `Pagina ${pagina} de ${totalPaginas || 1}`;
+            if (btnAnt) btnAnt.disabled = (pagina <= 1);
+            if (btnSig) btnSig.disabled = (pagina >= totalPaginas || totalPaginas === 0);
         }
 
         // 2. CARGAR EL HISTORIAL COMPLETO
@@ -196,19 +250,45 @@
             try {
                 const res = await fetch(`${API_URL}/historial`);
                 const datos = await res.json();
-                tabla.innerHTML = '';
+                prestamosGlobal = Array.isArray(datos) ? datos : [];
+                
+                renderizarTablasPrestamosHis();
 
-                if (datos.length === 0) {
-                    tabla.innerHTML = `<tr><td colspan="7" class="text-center py-4">No hay registros en el historial todavía.</td></tr>`;
-                    return;
+            }catch(err) {
+                console.error("error al conectar con la API:", err);
+                const tabla = document.getElementById('tabla-historial');
+                if (tabla) {
+                    tabla.innerHTML = `<tr><td colspan='6' class='text-center text-danger py-4'>Error al conectar con la API.</td></tr>`;
                 }
+            }
+        }
 
-                datos.forEach(p => {
-                    const fSalida = new Date(p.fechayhora_salida).toLocaleString('es-AR');
-                    const fDevolucion = p.fechayhora_devolucion ? new Date(p.fechayhora_devolucion).toLocaleString('es-AR') : '<span class="text-danger fw-bold">No devuelto</span>';
-                    const badge = p.estado === 'Activo' ? 'bg-warning text-dark' : 'bg-success';
+        function renderizarTablasPrestamosHis(lista) {
+            listaHistorialCompleta = lista;
+            const tabla = document.getElementById('tabla-historial');
+            if (!tabla) return;
 
-                    tabla.innerHTML += `
+            tabla.innerHTML = '';
+            if (prestamosGlobal.length === 0) {
+                tabla.innerHTML = `<tr><td colspan='6' class='text-center py-4 text-muted'>No hay ningun elemento devuelto aun.</td></tr>`;
+                actualizarControlesPaginacion(0, 0);
+                return;
+            }
+
+            const totalPaginas = Math.ceil(prestamosGlobal.length / limitePorPagina);
+            if (paginaActualPrestamosHis > totalPaginas) paginaActualPrestamosHis = totalPaginas;
+            if (paginaActualPrestamosHis < 1) paginaActualPrestamosHis = 1;
+
+            const inicio = (paginaActualPrestamosHis - 1) * limitePorPagina;
+            const fin = inicio + limitePorPagina;
+            const elementosPagina = prestamosGlobal.slice(inicio, fin);
+
+            elementosPagina.forEach(p => {
+                const fSalida = new Date(p.fechayhora_salida).toLocaleString('es-AR');
+                const fDevolucion = p.fechayhora_devolucion ? new Date(p.fechayhora_devolucion).toLocaleString('es-AR') : '<span class="text-danger fw-bold">No devuelto</span>';
+                const badge = p.estado === 'Activo' ? 'bg-warning text-dark' : 'bg-success';
+
+                tabla.innerHTML += `
                         <tr>
                             <td>${fSalida}</td>
                             <td>${fDevolucion}</td>
@@ -220,10 +300,22 @@
                         </tr>
                     `;
                 });
-            } catch (err) {
-                console.error(err);
-                tabla.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al cargar historial.</td></tr>`;
+                actualizarControlesPaginacion(paginaActualPrestamosHis, totalPaginas);
             }
+
+        function cambiarPaginaPrestamos(direccion) {
+            paginaActualPrestamosHis += direccion;
+            cargarHistorial(listaHistorialCompleta);
+        }
+
+        function actualizarControlesPaginacion(pagina, totalPaginas) {
+            const info = document.getElementById('info-pagina-pres-his');
+            const btnAnt = document.getElementById('btn-ant-pres-his');
+            const btnSig = document.getElementById('btn-sig-pres-his');
+
+            if (info) info.textContent = `Pagina ${pagina} de ${totalPaginas || 1}`;
+            if (btnAnt) btnAnt.disabled = (pagina <= 1);
+            if (btnSig) btnSig.disabled = (pagina >= totalPaginas || totalPaginas === 0);
         }
 
         // 3. PREPARAR EL MODAL TRAENDO LOS COMPONENTES DE LAS OTRAS TABLAS (DOCENTES Y ELEMENTOS)
@@ -253,7 +345,7 @@
                     const disponible = total - reparacion;
 
                     if (disponible > 0) {
-                        selectElemento.innerHTML += `<option value="${e.id}">${e.elemento_nombre}: (cantidad restante: ${e.cantidad_total}) | (${e.categoria})</option>`;
+                        selectElemento.innerHTML += `<option value="${e.id}">${e.nombre}: (cantidad restante: ${e.cantidad_total}) | (${e.elemento_categoria})</option>`;
                     }
                     
                 });
@@ -312,7 +404,8 @@
             // 3. Muestras la información de qué se está devolviendo
             document.getElementById('infoDevolucion').innerText = 
                 `Elemento: ${prestamo.elemento_nombre}. 
-                Docente: ${prestamo.docente_nombre} ${prestamo.docente_apellido}`;
+                Docente: ${prestamo.docente_nombre} ${prestamo.docente_apellido}
+                Cant. Elementos: ${prestamo.cantidad} prestados`;
 
             // 4. Limpias el campo de texto de observaciones
             document.getElementById('observaciones').value = '';
@@ -368,7 +461,7 @@
             const filas = document.querySelectorAll('table tbody tr');
 
             filas.forEach(fila => {
-                // 🌟 TRUCO: Obtenemos TODO el texto de la fila junto (docente, elemento, fecha, etc.)
+                // Obtenemos TODO el texto de la fila junto (docente, elemento, fecha, etc.)
                 const textoFila = fila.textContent.toLowerCase();
 
                 // Si lo que escribió el usuario está en algún lugar de la fila, la dejamos visible
