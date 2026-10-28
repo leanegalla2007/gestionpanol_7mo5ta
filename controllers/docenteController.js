@@ -15,15 +15,15 @@ const docenteController = {
         try {
             console.log("-> BODY RECIBIDO EN DOCENTES:", req.body);
 
-            const { nombre, apellido, dni, turno, curso } = req.body;
+            const { nombre, apellido, dni, turno, curso, anio_curso } = req.body;
 
             // 1. Validamos PRIMERO que no falte ningún dato
-            if (!nombre || !apellido || !dni || !turno || !curso) {
+            if (!nombre || !apellido || !dni || !turno || !curso || !anio_curso) {
                 return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
             }
 
             // 2. Guardamos UNICAMENTE UNA VEZ usando req.body
-            const nuevoDocente = await Docente.create({ nombre, apellido, dni, turno, curso });
+            const nuevoDocente = await Docente.create({ nombre, apellido, dni, turno, curso, anio_curso });
 
             // 3. Respondemos con status 201
             return res.status(201).json({ message: 'Docente registrado con éxito', docente: nuevoDocente });

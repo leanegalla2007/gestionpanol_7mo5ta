@@ -5,7 +5,7 @@ class Docente {
     // Obtener todos los docentes
     static async getAll() {
         try {
-            const [rows] = await db.query('SELECT * FROM docentes ORDER BY apellido, nombre, dni, turno, curso');
+            const [rows] = await db.query('SELECT * FROM docentes ORDER BY apellido, nombre, dni, turno, curso, anio_curso');
             return rows;
         } catch (error) {
             throw new Error('Error al obtener los docentes: ' + error.message);
@@ -23,11 +23,11 @@ class Docente {
     }
 
     // Registrar un nuevo docente
-    static async create({nombre, apellido, dni, turno, curso}) {
+    static async create({nombre, apellido, dni, turno, curso, anio_curso}) {
         try {
-            const sql = 'INSERT INTO docentes (nombre, apellido, dni, turno, curso) VALUES (?, ?, ?, ?, ?)';
-            const [result] = await db.query(sql, [nombre, apellido, dni, turno, curso]);
-            return { id: result.insertId, nombre, apellido, dni, turno, curso };
+            const sql = 'INSERT INTO docentes (nombre, apellido, dni, turno, curso, anio_curso) VALUES (?, ?, ?, ?, ?, ?)';
+            const [result] = await db.query(sql, [nombre, apellido, dni, turno, curso, anio_curso]);
+            return { id: result.insertId, nombre, apellido, dni, turno, curso, anio_curso };
         } catch (error) {
             throw new Error('Error al crear el docente: ' + error.message);
         }
