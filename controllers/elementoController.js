@@ -52,20 +52,38 @@ createElemento: async (req, res) => {
 updateEstadoElemento: async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion = 0 } = req.body;
+        const { nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion = 0, fecha_reparacion } = req.body;
 
         const sql = `
             UPDATE elementos 
-            SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ?
+            SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ?, fecha_reparacion = ?
             WHERE id = ?
         `;
-    const parametros = [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, id];
+    const parametros = [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, fecha_reparacion, id];
 
     await db.query(sql, parametros);
     
     return res.status(200).json({message: 'Elemento actualizado correctamente'});
     } catch (error) {
         console.error("Error en actualizarElemento:", error);
+        return res.status(500).json({ error: error.message });
+    }
+},
+
+// En tu elementoController.js
+cambiarAReparacion: async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nuevoStock } = req.body; // O como recibas los datos
+
+        // 1. Generamos la fecha y hora exacta actual
+        const fechaActual = new Date().toISOString().slice(0, 19).replace("T", " ");
+
+        // 2. Llamamos al modelo pasándole la fecha junto con los demás datos
+        await Elemento.updateStockYEstado(id, nuevoStock, 'Reparacion', fechaActual);
+
+        return res.status(200).json({ message: 'Enviado a reparación correctamente' });
+    } catch (error) {
         return res.status(500).json({ error: error.message });
     }
 }

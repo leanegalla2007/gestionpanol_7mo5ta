@@ -13,6 +13,7 @@ router.get("/elementos", elementoController.getAllElementos);
 router.get("/elementos/:id", elementoController.getElementoById);
 router.post("/elementos", elementoController.createElemento);
 router.put("/elementos/:id", elementoController.updateEstadoElemento);
+router.post("/elementos", elementoController.cambiarAReparacion);
 
 //seccion de prestamos
 router.get("/prestamos/activos", prestamoController.getPrestamosActivos);

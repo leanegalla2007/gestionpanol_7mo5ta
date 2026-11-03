@@ -16,10 +16,10 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <ul class="nav nav-pills mb-4" id="inventarioTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="elementos-tab" data-bs-toggle="tab" data-bs-target="#activos" type="button" role="tab" onclick="mostrarSeccion('activo')">📦 Inventario Activo</button>
+                    <button class="nav-link active" id="elementos-tab" data-bs-toggle="tab" data-bs-target="#activos" type="button" role="tab"">📦 Inventario Activo</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="reparaciones-tab" data-bs-toggle="tab" data-bs-target="#reparacion" type="button" role="tab" onclick="mostrarSeccion('reparacion')">🛠 En reparacion</button>
+                    <button class="nav-link" id="reparaciones-tab" data-bs-toggle="tab" data-bs-target="#reparacion" type="button" role="tab">🛠 En reparacion</button>
                 </li>
             </ul>
             <div>
@@ -59,7 +59,7 @@
             <table class="table table-striped align-middle">
                 <thead class="table-warning">
                     <tr>
-                        <th>ID</th>
+                        <th>Fecha de registro</th>
                         <th class="text-center">Nombre del Elemento</th>
                         <th class="text-center">Categoría</th>
                         <th class="text-center">Estado</th>
@@ -362,10 +362,12 @@ console.log("Elementos recibidos de la API:", lista);
         const cantReparacion = parseInt(item.cant_reparacion || item.cant_reparaciones) || 0;
         const total = parseInt(item.cantidad_total) || 0;
         const disponible = Math.max(0, item.cantidad_total - cantReparacion);
+        const fechaISO = item.fecha_reparacion ? item.fecha_reparacion.replace("", "T") : null;
+        const FechaReparacion = fechaISO ? new Date (item.fecha_reparacion).toLocaleString("es-AR") : '<span class="text-danger fw-bold">No devuelto</span>';
 
         tbody.innerHTML += `
             <tr>
-                <td>${item.id || item.id_elemento}</td>
+                <td>${FechaReparacion}</td>
                 <td class="fw-bold text-center">${item.nombre}</td>
                 <td class="text-center">${item.categoria}</td>
                 <td class="text-center"><span class="badge bg-danger fs-6">${item.estado}</span></td>
@@ -474,13 +476,16 @@ async function confirmarReincorporacion() {
     const nuevaCantReparacion = cantEnReparacion - cantAReincorporar;
     const nuevoEstado = (nuevaCantReparacion === 0) ? 'Disponible' : 'Reparacion';
 
+    const FechaActual = new Date().toISOString().slice(0, 19).replace("T", " ");
+
     const datosActualizados = {
         nombre: elemento.nombre,
         categoria: elemento.categoria,
         cantidad_total: parseInt(elemento.cantidad_total),
         stock_minimo: parseInt(elemento.stock_minimo),
         estado: nuevoEstado,
-        cant_reparacion: nuevaCantReparacion
+        cant_reparacion: nuevaCantReparacion,
+        fecha_reparacion: FechaActual
     };
 
     try {
