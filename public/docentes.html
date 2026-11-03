@@ -141,7 +141,7 @@
             console.log("El boton de actualizar funciona y llamo a la funcion");
             const tabla = document.getElementById('tabla-docentes');
             try {
-                tabla.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Actualizando lista... </td></tr>`;
+                tabla.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Actualizando lista... </td></tr>`;
                 const respuesta = await fetch (API_URL);
                 const docentes = await respuesta.json();
 
@@ -168,7 +168,7 @@
                 }
             }  catch (error) {
                 console.error(error);
-                tabla.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`
+                tabla.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`
             }
         }
 

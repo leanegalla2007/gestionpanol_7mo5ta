@@ -25,9 +25,11 @@ class Docente {
     // Registrar un nuevo docente
     static async create({nombre, apellido, dni, turno, curso, anio_curso}) {
         try {
+            const aniosTexto = Array.isArray(anio_curso) ? anio_curso.join(', ') : anio_curso;
+            // console.log("Valores exactos a insertar:", [nombre, apellido, dni, turno, curso, anio_curso]);
             const sql = 'INSERT INTO docentes (nombre, apellido, dni, turno, curso, anio_curso) VALUES (?, ?, ?, ?, ?, ?)';
-            const [result] = await db.query(sql, [nombre, apellido, dni, turno, curso, anio_curso]);
-            return { id: result.insertId, nombre, apellido, dni, turno, curso, anio_curso };
+            const [result] = await db.query(sql, [nombre, apellido, dni, turno, curso, aniosTexto]);
+            return { id: result.insertId, nombre, apellido, dni, turno, curso, anio_curso: aniosTexto};
         } catch (error) {
             throw new Error('Error al crear el docente: ' + error.message);
         }
