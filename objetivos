@@ -1,0 +1,15 @@
+-- LISTA DE OBJETIVOS PARA TERMINAR CON EL PROYECTO --
+1) Hacer un modal para la devolucion parcial de elementos en reparacion. -[HECHO]
+2) Solucionar el error visual de los elementos en reparacion cuando todavia hay elementos disponibles. -[HECHO]
+3) Solucionar el problema de que no guerde las observaciones. -[HECHO]
+4) Hacer separaciones de 10 en 10 para la tabla de elementos, docentes y prestamos. -[HECHO PARCIALMENTE (Elementos y Prestamos HECHO)]
+5) Separar a los docentes por el anio que estan asignados. -[HECHO PARCIALMENTE]
+(eso incluye tambien implementar un sistema de editar o eliminar docentes en caso que no este cursando en la escuela).
+6) Incluir un boton eliminar a las tablas.
+7) Incluir apartado de compras de elementos que incluya recomendaciones de los docentes.
+8) Hacer iguales las pestanas de Prestamos y elementos. -[HECHO]
+9) Mejorar el filtro de la tabla prestamos.
+10) Incluir sugerencias de compras de los docentes en la tabla de docentes.
+11) Incluir fecha y hora del momento que un elemento se manda a reparacion.
+
+-- Para el 26 de noviembre --
