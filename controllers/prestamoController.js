@@ -28,7 +28,7 @@ const prestamoController = {
     crearPrestamo: async (req, res) => {
         try {
             console.log("DEBUG BACKEND -> Datos recibidos en req.body:", req.body);
-            const { id_docentes, id_elementos, observaciones, cantidad } = req.body;
+            const { id_docentes, id_elementos, observaciones, cantidad, motivo_prestamo } = req.body;
 
             if (!id_docentes || !id_elementos) {
                 return res.status(400).json({ message: 'Docente y Elemento son requeridos.' });
@@ -46,7 +46,7 @@ const prestamoController = {
             }
 
             // 2. Crear el registro del préstamo
-            await Prestamo.create({ id_docentes, id_elementos, observaciones, cantidad });
+            await Prestamo.create({ id_docentes, id_elementos, observaciones, cantidad, motivo_prestamo });
 
             const nuevoStock = elemento.cantidad_total - cantidad;
 

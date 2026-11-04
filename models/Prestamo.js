@@ -16,7 +16,7 @@ class Prestamo {
     static async getAllActivos() {
         try {
             const sql = `
-                SELECT p.id, p.id_elementos, p.id_docentes, p.fechayhora_salida, p.observaciones, p.estado, p.cantidad,
+                SELECT p.id, p.id_elementos, p.id_docentes, p.fechayhora_salida, p.observaciones, p.estado, p.cantidad, p.motivo_prestamo,
                        d.nombre AS docente_nombre, d.apellido AS docente_apellido,
                        e.nombre AS elemento_nombre, e.categoria AS elemento_categoria
                 FROM prestamos p
@@ -50,10 +50,10 @@ class Prestamo {
     }
 
     // 3. Registrar un nuevo préstamo
-    static async create({ id_docentes, id_elementos, observaciones = '', cantidad = '1' }) {
+    static async create({ id_docentes, id_elementos, observaciones = '', motivo_prestamo = '', cantidad = '1' }) {
         try {
-            const sql = "INSERT INTO prestamos (id_docentes, id_elementos, observaciones, cantidad, estado) VALUES (?, ?, ?, ?, 'Activo')";
-            const [result] = await db.query(sql, [id_docentes, id_elementos, observaciones, cantidad]);
+            const sql = "INSERT INTO prestamos (id_docentes, id_elementos, observaciones, motivo_prestamo, cantidad, estado) VALUES (?, ?, ?, ?, ?, 'Activo')";
+            const [result] = await db.query(sql, [id_docentes, id_elementos, observaciones, motivo_prestamo, cantidad]);
             return result.insertId;
         } catch (error) {
             throw new Error('Error al registrar préstamo: ' + error.message);

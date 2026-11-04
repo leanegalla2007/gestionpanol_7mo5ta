@@ -1,5 +1,6 @@
 // src/models/Elemento.js
 const db = require('../config/db');
+const { param } = require('../routes/panolRoutes');
 
 class Elemento {
     // 1. Obtener todos los elementos del pañol
@@ -55,21 +56,41 @@ class Elemento {
     }
 
     // 4. Actualizar el estado de un elemento (ej: de 'Disponible' a 'En Reparación')
-    static async updateStockYEstado(id, nuevoStock, nuevoEstado) {
+    // 4. Cambiar estado (ej: de 'Disponible' a 'En Reparación' o viceversa)
+    static async updateStockYEstado(id, nuevoStock, nuevoEstado, fecha_reparacion = null) {
         try {
-            const sql = "UPDATE elementos SET cantidad_total = ?, estado = ?, fecha_reparacion = ? WHERE id = ?";
-            await db.query(sql, [id, nuevoStock, nuevoEstado, fecha_reparacion]);
-            return { id, cantidad_total:nuevoStock, estado: nuevoEstado, fecha_reparacion };
+            let sql, params;
+
+            // Si se envió una fecha (por ejemplo, al mandar a reparación)
+            if (fecha_reparacion !== null) {
+                sql = "UPDATE elementos SET cantidad_total = ?, estado = ?, fecha_reparacion = ? WHERE id = ?";
+                params = [nuevoStock, nuevoEstado, fecha_reparacion, id];
+            } else {
+                // Si NO se envió fecha (como en las devoluciones donde pasa a 'Disponible'), 
+                // actualizamos el stock y el estado, y limpiamos la fecha de reparación a NULL.
+                sql = "UPDATE elementos SET cantidad_total = ?, estado = ?, fecha_reparacion = NULL WHERE id = ?";
+                params = [nuevoStock, nuevoEstado, id];
+            }
+
+            await db.query(sql, params);
+            return { id, cantidad_total: nuevoStock, estado: nuevoEstado };
         } catch (error) {
             throw new Error('Error al actualizar el estado del elemento: ' + error.message);
         }
     }
-
+    
     static async actualizarStock(id, datosStock) {
         try {
             const { nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion = 0, fecha_reparacion } = datosStock;
-            const sql = "UPDATE elementos SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ?, fecha_reparacion = ? WHERE id = ?";
-            const [result] = await db.query(sql, [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, fecha_reparacion, id]);
+            let sql, params;
+            if (fecha_reparacion !== undefined) {
+                sql = "UPDATE elementos SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ?, fecha_reparacion = ? WHERE id = ?";
+                params = [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, fecha_reparacion, id]
+            } else {
+                sql = "UPDATE elementos SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ?, WHERE id = ?";
+                params = [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, id]
+            }
+            const [result] = await db.query(sql, params);
 
             return result;
         } catch (error) {

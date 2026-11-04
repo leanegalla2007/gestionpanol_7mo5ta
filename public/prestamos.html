@@ -131,6 +131,11 @@
                             <label for="cantidad_total" class="form-label">Cantidad de objetos que lleva el docente</label>
                             <input type="number" id="cantidad_total" class="form-control" min="1" value="1" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="motivo_prestamo" class="form-label">Motivo del prestamo</label>
+                            <textarea id="motivo_prestamo" class="form-control" rows="5" placeholder="Explicacion del docente de para que se va usar el prestamo."></textarea>
+                        </div>
+                        
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -165,6 +170,24 @@
                         <button type="submit" class="btn btn-success">Confirmar Devolución</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Ver Motivo del Préstamo -->
+    <div class="modal fade" id="modalVerMotivo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Motivo del Préstamo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="textoMotivoPrestamo" class="fs-5 text-dark p-2 bg-light rounded border"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -269,10 +292,11 @@
 
 
                 datosPagina.forEach(p => {
-                    const fecha = new Date(p.fechayhora_salida).toLocaleString('es-AR');    
+                    const fecha = new Date(p.fechayhora_salida).toLocaleString('es-AR'); 
+                    const motivoSeguro = (p.motivo_prestamo || 'Sin motivo especificado').replace(/'/g, "\\'");   
                     tabla.innerHTML += `
-                        <tr>
-                            <td>${fecha}</td>
+                    <tr>
+                        <td>${fecha}</td>
                             <td class="text-center"><strong>${p.docente_apellido}, ${p.docente_nombre}</strong></td>
                             <td class="text-center">${p.elemento_nombre}</td>
                             <td class="text-center"><span class="badge bg-primary">${p.elemento_categoria || p.categoria}</span></td>
@@ -281,14 +305,24 @@
                                 <button class="btn btn-sm btn-success fw-bold" onclick="devolverObjeto(${p.id}, ${p.id_elementos})">
                                     ✓ Recibir Devolución
                                 </button>
+                                <button class="btn btn-sm btn-info fw-bold" onclick="motivoPrestamo('${motivoSeguro}')">
+                                    Motivo del Prestamo
+                                </button>
                             </td>
                         </tr>
                     `
                 });
+                
                 document.getElementById('info-pagina-pres-act').innerText = `Pagina ${paginaActualPrestamosAct} de ${totalPaginas}`
                 actualizarControlesPaginacion(paginaActualPrestamosAct, totalPaginas);
             }   
-        
+            function motivoPrestamo(motivo) {
+                document.getElementById('textoMotivoPrestamo').textContent = motivo;
+            
+                const  modal = new bootstrap.Modal(document.getElementById('modalVerMotivo'));
+                modal.show();
+            }            
+            
         
 
         function cambiarPaginaPrestamosAct(direccion) {
@@ -347,7 +381,6 @@
                         });
                         renderizarTablasPrestamosHis();
                     });
-                
         
         function renderizarTablasPrestamosHis(lista) {
             listaHistorialCompleta = lista;
@@ -469,14 +502,24 @@
             const id_elementos = document.getElementById('select-elemento').value;
             const observaciones = document.getElementById('observaciones').value;
             const cantidad = parseInt(document.getElementById('cantidad_total').value) || 1;
+            const motivo_prestamo = document.getElementById('motivo_prestamo').value;
 
             console.log("DEBUG FRONTEND ->", { id_docentes, id_elementos, observaciones, cantidad });
+
+            // En tu función de JavaScript que envía el formulario de nuevo préstamo:
+        const datosPrestamo = {
+            id_docentes: id_docentes,
+            id_elementos: id_elementos,
+            cantidad: cantidad,
+            observaciones: observaciones,
+            motivo_prestamo: motivo_prestamo // <-- ¡Revisá que este ID sea el correcto!
+        };
 
             try {
                 const res = await fetch(`http://localhost:3000/api/prestamos`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_docentes, id_elementos, observaciones, cantidad })
+                    body: JSON.stringify(datosPrestamo)
                 });
 
                 if (res.ok) {
