@@ -34,6 +34,7 @@ class Docente {
             throw new Error('Error al crear el docente: ' + error.message);
         }
     }
+
 }
 
 module.exports = Docente;

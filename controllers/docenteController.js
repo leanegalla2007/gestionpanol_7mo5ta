@@ -30,7 +30,27 @@ const docenteController = {
 
         } catch (error) {
             console.error("🔴 ERROR EXACTO AL CREAR DOCENTE:", error);
+                if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062 || (error.message && error.message.includes('Duplicate entry'))) {
+                return res.status(400).json({ error: 'El DNI ingresado ya se encuentra registrado en el sistema.' });
+            }
             return res.status(500).json({ error: error.message });
+        }
+    },
+
+    getDocentesPorAnio: async (req, res) => {
+        try {
+            const { anio } = req.query;
+            let sql = `SELECT * FROM docentes`;
+            let params = [];
+
+            if (anio) {
+                sql += ` WHERE anio_curso LIKE ?`;
+                params.push(`%${anio}%`);
+            }
+            const [rows] = await db.query(sql, params);
+            res.status(200).json(rows);
+        } catch (error) {
+            res.status(500).json({error: error.message});
         }
     }
 };
