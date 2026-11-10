@@ -25,13 +25,11 @@
                     <table class="table table-striped table-hover mb-0">
                         <thead class="table-dark">
                             <tr>
-                                <th>ID</th>
                                 <th class="text-center">Nombre</th>
                                 <th class="text-center">Apellido</th>
                                 <th class="text-center">DNI</th>
                                 <th class="text-center">Turno</th>
                                 <th class="text-center">Curso</th>
-                                <th class="text-center">Año</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-docentes">
@@ -78,9 +76,9 @@
                            </div>
                         </div>
                         <div class="mb-3">
-                        <label class="form-label d-block">Curso/s del Docente</label>
+                        <label class="form-label d-block">Ciclo/s del Docente</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="checkbox" name="curso" id="turnoInferior" value="Inferior">
+                                <input class="form-check-input" type="checkbox" name="curso" id="turnoInferior" value="Basico">
                                 <label class="form-check-label" for="cursoInferior">Basico</label>
                            </div>
                            <div class="form-check form-check-inline">
@@ -146,106 +144,139 @@
             const tabla = document.getElementById('tabla-docentes');
             try {
                 tabla.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Actualizando lista... </td></tr>`;
-                const respuesta = await fetch (`http://localhost:3000/api/docentes?anio=${anioSeleccionado}`);
+                const respuesta = await fetch (`${API_URL}/${anioSeleccionado}`);
                 const docentes = await respuesta.json();
 
                 tabla.innerHTML = '';
+
+                if (docentes.length === 0) {
+                    tabla.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4"No hay docentes registrados para este año.</td></tr>`;
+                        return;
+                }
+                
 
                 docentes.forEach(docentes => {
                     const fila = document.createElement('tr');
 
                     fila.innerHTML = `
-                    <td>${docentes.id}</td>
                     <td class="text-center"><strong>${docentes.nombre}</strong></td>
                     <td class="text-center"><strong>${docentes.apellido}</strong></td> 
                     <td class="text-center">${docentes.dni}</td>
                     <td class="text-center"><span>${docentes.turno}</span></td>
                     <td class="text-center"><span>${docentes.curso}</span></td>
-                    <td class="text-center"><span class="badge bg-info text-dark">${docentes.anio_curso}° Año</span></td>
                     `
                     tabla.appendChild(fila);
                 });
 
-                if (docentes.length === 0) {
-                    tabla.innerHTML = `<tr><td colspan="7" class+"text-center py-4">No hay docentes cargados en la lista todavia.</td></tr>`;
-                    return;
-                }
             }  catch (error) {
                 console.error(error);
-                tabla.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`
+                tabla.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Error al conectar con la API.</td></tr>`
             }
         }
 
-        //2. LOGICA DEL FORMULARIO DENTRO DEL MODAL
-        document.getElementById('form-docente').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const nombre = document.getElementById('docente-nombre').value;
-            const apellido = document.getElementById('docente-apellido').value;
-            const dni = document.getElementById('docente-dni').value.trim(); 
-            const Mindigitosdni = 7;
-            const Maxdigitosdni = 8;
-            
-            const checkboxesTurno = document.querySelectorAll('input[name="turno"]:checked');
-            const turnosArray = Array.from(checkboxesTurno).map(cb => cb.value);
-            const turno = turnosArray.join(', ');
-            
-            const checkboxesCursos = document.querySelectorAll('input[name="curso"]:checked');
-            const cursosArray =Array.from(checkboxesCursos).map(cb => cb.value);
-            const curso = cursosArray.join(', ');
-
-            const checkboxesAnios = document.querySelectorAll('input[name="anios"]:checked');
-            const aniosSeleccionados = Array.from(checkboxesAnios).map(cb => cb.value);
-            const aniosTexto = aniosSeleccionados.join(', ');
-            
-            if (dni.length < Mindigitosdni) {
-                alert("el DNI no puede tener menos de " + Mindigitosdni + " digitos");
-                return;
-            }
-
-            if (dni.length > Maxdigitosdni) {
-                alert("Los digitos DNI supero el maximo establecido (" + Maxdigitosdni + ")")
-                return; 
-            }
-
-            if (turnosArray.length === 0) {
-                alert("Selecciona al menos un turno para agregar al docente a la lista");
-                return;
-            }
-            
-            try {
-                const respuesta = await fetch (API_URL, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({nombre, apellido, dni, turno, curso, anio_curso: aniosSeleccionados})
-                });
-                
-                const datosDocente = {
-                nombre: nombre,
-                apellido: apellido,
-                dni: dni,
-                turno: turno,
-                curso: curso,
-                anio_curso: aniosTexto // <- Acá va el texto combinado
-                };
-                if (respuesta.ok) {
-                    alert ('Docente agregado a la lista con exito');
-                    document.getElementById('form-docente').reset();
-
-                    const modalElemento = bootstrap.Modal.getInstance(document.getElementById('modalDocente'));
-                    modalElemento.hide();
-
-                    cargarLista();
-                } else {
-                    const errorData = await respuesta.json();
-                    alert('Error: ' + errorData.message);  
+    document.addEventListener('DOMContentLoaded', cargarLista);
+            if(anioSeleccionado) {
+                const checkboxCorrespondiente = document.querySelector(`input[name="anios"][value="${anioSeleccionado}"]`);
+                if (checkboxCorrespondiente) {
+                    checkboxCorrespondiente.checked = true;
                 }
-            } catch (error) {
-                console.error(error);
-                alert('El DNI ingresado ya pertenece a otro docente registrado.')
             }
-        });
 
+    
+            //2. LOGICA DEL FORMULARIO DENTRO DEL MODAL
+            
+            document.getElementById('form-docente').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const nombre = document.getElementById('docente-nombre').value;
+                const apellido = document.getElementById('docente-apellido').value;
+                const dni = document.getElementById('docente-dni').value.trim(); 
+    const Mindigitosdni = 7;
+    const Maxdigitosdni = 8;
+    
+    const checkboxesTurno = document.querySelectorAll('input[name="turno"]:checked');
+    const turnosArray = Array.from(checkboxesTurno).map(cb => cb.value);
+    const turno = turnosArray.join(', ');
+    
+    const checkboxesCursos = document.querySelectorAll('input[name="curso"]:checked');
+    const cursosArray = Array.from(checkboxesCursos).map(cb => cb.value);
+    const curso = cursosArray.join(', ');
+
+    const checkboxesAnios = document.querySelectorAll('input[name="anios"]:checked');
+    const aniosSeleccionados = Array.from(checkboxesAnios).map(cb => cb.value);
+    const aniosTexto = aniosSeleccionados.join(', ');
+    document.querySelectorAll('input[name="anios"]').forEach(checkboxesCursos => {
+        checkboxesAnios.addEventListener('change', () => {
+            const inputCicloBasico = document.querySelector('input[name="curso"][value="Basico"]');
+            const inputClicloSuperior = document.querySelector('input[name="name"][value="Superior"]');
+
+            if (aniosSeleccionados.length === 0) return;
+
+            const esCicloBasico = aniosSeleccionados.some(anio => anio >= 1 && anio <= 3);
+            const esCicloSuperior = aniosSeleccionados.some(anio => anio >= 4);
+
+            if (esCicloBasico && !esCicloSuperior) {
+                if (inputCicloBasico) inputCicloBasico.checked = true;
+                if (inputClicloSuperior) inputClicloSuperior.checked = false;
+            } else if (esCicloSuperior && !esCicloBasico) {
+                if (inputClicloSuperior) inputClicloSuperior.checked = true;
+                if (inputCicloBasico) inputCicloBasico.checked = false;
+            }
+        })
+    })
+    
+    if (dni.length < Mindigitosdni) {
+        alert("El DNI no puede tener menos de " + Mindigitosdni + " dígitos");
+        return;
+    }
+
+    if (dni.length > Maxdigitosdni) {
+        alert("Los dígitos del DNI superan el máximo establecido (" + Maxdigitosdni + ")");
+        return; 
+    }
+
+    if (turnosArray.length === 0) {
+        alert("Selecciona al menos un turno para agregar al docente a la lista");
+        return;
+    }
+    
+    try {
+        // 1. Armamos el objeto PRIMERO con el texto combinado (aniosTexto)
+        const datosDocente = {
+            nombre: nombre,
+            apellido: apellido,
+            dni: dni,
+            turno: turno,
+            curso: curso,
+            anio_curso: aniosTexto 
+        };
+
+        // 2. Hacemos el fetch mandando ese objeto
+        const respuesta = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosDocente)
+        });
+        
+        if (respuesta.ok) {
+            alert('Docente agregado a la lista con éxito');
+            document.getElementById('form-docente').reset();
+
+            const modalElemento = bootstrap.Modal.getInstance(document.getElementById('modalDocente'));
+            if (modalElemento) {
+                modalElemento.hide();
+            }
+
+            cargarLista(); // Refresca la tabla automáticamente
+        } else {
+            const errorData = await respuesta.json();
+            alert('Error: ' + (errorData.message || errorData.error));  
+        }
+    } catch (error) {
+        console.error(error);
+        alert('El DNI ingresado ya pertenece a otro docente registrado o hubo un error de red.');
+    }
+});
         window.addEventListener('DOMContentLoaded', cargarLista);
     </script>
 </body>

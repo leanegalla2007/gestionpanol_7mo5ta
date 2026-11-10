@@ -7,7 +7,7 @@ const prestamoController = require("../controllers/prestamoController")
 //seccion de docentes
 router.get("/docentes", docenteController.getAllDocentes);
 router.post("/docentes", docenteController.createDocente);
-router.get("/docentes", docenteController.getDocentesPorAnio);
+router.get("/docentes/:anio", docenteController.getDocentesPorAnio);
 
 //seccion de elemento
 router.get("/elementos", elementoController.getAllElementos);

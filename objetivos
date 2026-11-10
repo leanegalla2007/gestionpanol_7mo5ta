@@ -3,9 +3,9 @@
 2) Solucionar el error visual de los elementos en reparacion cuando todavia hay elementos disponibles. -[HECHO]
 3) Solucionar el problema de que no guerde las observaciones. -[HECHO]
 4) Hacer separaciones de 10 en 10 para la tabla de elementos, docentes y prestamos. -[HECHO PARCIALMENTE (Elementos y Prestamos HECHO)]
-5) Separar a los docentes por el anio que estan asignados. (eso incluye tambien implementar un sistema de editar o eliminar docentes en caso que no este cursando en la escuela). -[HECHO PARCIALMENTE]
+5) Separar a los docentes por el anio que estan asignados. -[HECHO]
 6) Incluir un boton eliminar a las tablas.
-7) Incluir apartado de compras de elementos que incluya recomendaciones de los docentes.
+7) Incluir un apartado de ficha tecnica del docente (materiales que ensenia, fecha de ingresion de la escuela, fecha de nacimiento, escuela egresada, ultima boleta medica, registros de faltas en lo que va de anio, etc. etc.)
 8) Hacer iguales las pestanas de Prestamos y elementos. -[HECHO]
 9) Mejorar el filtro de la tabla prestamos. -[HECHO]
 10) Incluir sugerencias de compras de los docentes en la tabla de docentes.

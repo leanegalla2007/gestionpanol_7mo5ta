@@ -1,5 +1,6 @@
 // src/controllers/docenteController.js
 const Docente = require('../models/Docente');
+const db = require('../config/db');
 
 const docenteController = {
     getAllDocentes: async (req, res) => {
@@ -39,7 +40,7 @@ const docenteController = {
 
     getDocentesPorAnio: async (req, res) => {
         try {
-            const { anio } = req.query;
+            const { anio } = req.params;
             let sql = `SELECT * FROM docentes`;
             let params = [];
 
@@ -47,10 +48,11 @@ const docenteController = {
                 sql += ` WHERE anio_curso LIKE ?`;
                 params.push(`%${anio}%`);
             }
+
             const [rows] = await db.query(sql, params);
             res.status(200).json(rows);
         } catch (error) {
-            res.status(500).json({error: error.message});
+            console.error("🔴 Error en getDocentesPorAnio:", error);
         }
     }
 };
