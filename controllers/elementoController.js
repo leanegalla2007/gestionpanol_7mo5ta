@@ -52,14 +52,14 @@ createElemento: async (req, res) => {
 updateEstadoElemento: async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion = 0, fecha_reparacion } = req.body;
+        const { nombre, marca, categoria, cantidad_total, motivo, recomendacion, stock_minimo, estado, cant_reparacion = 0, fecha_reparacion, fecha_compra } = req.body;
 
         const sql = `
             UPDATE elementos 
-            SET nombre = ?, categoria = ?, cantidad_total = ?, stock_minimo = ?, estado = ?, cant_reparacion = ?, fecha_reparacion = ?
+            SET nombre = ?, marca = ?, categoria = ?, cantidad_total = ?, motivo = ?, recomendacion = ? stock_minimo = ?, estado = ?, cant_reparacion = ?, fecha_reparacion = ?, fecha_compra
             WHERE id = ?
         `;
-    const parametros = [nombre, categoria, cantidad_total, stock_minimo, estado, cant_reparacion, fecha_reparacion, id];
+    const parametros = [nombre, marca, categoria, cantidad_total, motivo, recomendacion, stock_minimo, estado, cant_reparacion, fecha_reparacion, fecha_compra, id];
 
     await db.query(sql, parametros);
     

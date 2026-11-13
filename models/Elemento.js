@@ -34,11 +34,15 @@ class Elemento {
         try {
             // Aseguramos valores por defecto por si alguna propiedad no viene en el objeto
             const nombre = datos.nombre || datos.nombre_objeto;
+            const marca = datos.marca
             const categoria = datos.categoria || '';
             const cantidad_total = parseInt(datos.cantidad_total) || 0;
             const cant_reparacion =parseInt(datos.cant_reparacion) || 0;
             const stock_minimo = parseInt(datos.stock_minimo) || 0;
             const estado = datos.estado || 'Disponible';
+            const motivo = datos.motivo;
+            const recomendacion = datos.recomendacion;
+            const fecha_compra = datos.fecha_compra;
             const fecha_reparacion = datos.fecha_reparacion;
 
 
@@ -46,10 +50,10 @@ class Elemento {
                 throw new Error("El campo 'nombre' es requerido.");
             }
 
-            const sql = 'INSERT INTO elementos (nombre, categoria, cantidad_total, cant_reparacion, stock_minimo, estado, fecha_reparacion) VALUES (?, ?, ?, ?, ?, ?, ?)';
-            const [result] = await db.query(sql, [nombre, categoria, cantidad_total, cant_reparacion, stock_minimo, estado, fecha_reparacion]);
+            const sql = 'INSERT INTO elementos (nombre, marca, categoria, cantidad_total, cant_reparacion, stock_minimo, estado, motivo, recomendacion, fecha_reparacion, fecha_compra) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+            const [result] = await db.query(sql, [nombre, marca, categoria, cantidad_total, cant_reparacion, stock_minimo, estado, motivo, recomendacion, fecha_reparacion, fecha_compra]);
             
-            return { id: result.insertId, nombre, categoria, cantidad_total, cant_reparacion, stock_minimo, estado, fecha_reparacion };
+            return { id: result.insertId, nombre, marca, categoria, cantidad_total, cant_reparacion, stock_minimo, estado, motivo, recomendacion, fecha_reparacion, fecha_compra };
         } catch (error) {
             throw new Error('Error al crear el elemento: ' + error.message);
         }

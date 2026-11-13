@@ -21,9 +21,12 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="reparaciones-tab" data-bs-toggle="tab" data-bs-target="#reparacion" type="button" role="tab">🛠 En reparacion</button>
                 </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reparaciones-tab" data-bs-toggle="tab" data-bs-target="#compra" type="button" role="tab">💰 Historial de Compra</button>
+                </li>
             </ul>
             <div>
-                <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalElemento">Cargar Nuevo Elemento</button>
+                <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalElemento">Comprar Nuevo Elemento</button>
                 <button type="button" class="btn btn-primary" onclick="cargarInventario()">Actualizar Stock</button>
             </div>
         </div>
@@ -34,7 +37,6 @@
             <table class="table table-striped align-middle">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
                         <th class="text-center">Nombre del Elemento</th>
                         <th class="text-center">Categoría</th>
                         <th class="text-center">Estado</th>
@@ -79,18 +81,46 @@
     </div>
 </div>
 
+<div class="tab-pane fade" id="stock" role="tabpanel" aria-labelledby="stock-tab">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle">
+            <thead class="table-success">
+                <tr>
+                    <th>Fecha de compra</th>
+                    <th class="text-center">Elemento</th>
+                    <th class="text-center">Marca</th>
+                    <th class="text-center">Cant. Comprada (unidades)</th>
+                    <th class="text-center">Precio</th>
+                    <th class="text-center">Motivo</th>
+                    <th class="text-center">Recomendado por:</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-stock"></tbody>
+        </table>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <button class="btn btn-outline-secondary" id="btn-ant-elem-stock" onclick="cambiarPaginaElementosStock(-1)">Anterior</button>
+                            <span id="info-pagina-stock" class="fw-bold">Página 1 de 1</span>
+            <button class="btn btn-outline-secondary" id="btn-ant-elem-stock" onclick="cambiarPaginaElementosStock(1)">Siguiente</button>
+        </div>
+    </div>
+</div>
+
     <div class="modal fade" id="modalElemento" tabindex="-1" aria-labelledby="modalElementoLabel" aria-hidden="true"> 
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="modalElementoLabel">Agregar Elemento al Stock</h5>
+                    <h5 class="modal-title" id="modalElementoLabel">Registrar Elemento al Stock</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="form-elemento">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="nombre"  class="form-label">Nombre del Objeto</label>
+                            <label for="nombre" class="form-label">Nombre del Objeto</label>
                             <input type="text" id="nombre" class="form-control" placeholder="Ej: Cajas de Tizas Blancas" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="marca" class="form-label">Marca</label>
+                            <input type="text" id="marca" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label for="categoria" class="form-label">Categoría</label>
@@ -101,6 +131,24 @@
                                 <option value="Mapas">Mapas</option>
                                 <option value="Electricidad">Electricidad</option>
                                 <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="motivo" class="form-label">Motivo de Compra</label>
+                            <select id="motivo" class="form-select" required>
+                                <option value="" selected disabled>Seleccionar motivo...</option>
+                                <option value="Falta de Stock">Por falta de stock.</option>
+                                <option value="Recomendacion">Por recomendacion de docente.</option>
+                            </select>
+                        <div class="mb-3">
+                            <label for="precio" class="form-label">Precio comprado</label>
+                            <input type="number" id="precio" class="form-control" value="1" min="1" required>
+                        </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="recomendacion-docente" class="form-label">Recomendacion de Docente</label>
+                            <select id="recomendacion-docente" class="form-select" required>
+                                <option value="" selected disabled>Cargando docentes...</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -207,8 +255,10 @@
         let elementosGlobal = [];
         let paginaActualElementos = 1;
         let paginaActualReparacion = 1;
+        let paginaActualStock = 1;
         let listaElementosCompleta = [];
-        let listaReparacionCompleta = [] // Guardamos la respuesta original de la API
+        let listaReparacionCompleta = [];
+        let listaStockCompleta = []; // Guardamos la respuesta original de la API
         const limitePorPagina = 10;
         const API_URL = 'http://localhost:3000/api/elementos';
 
@@ -217,6 +267,7 @@
             console.log("El botón de actualizar funciona y llamó a la función");
             const tablaElementos = document.getElementById('tabla-elementos');
             const tablaReparacion = document.getElementById('tabla-reparacion');
+            const tablaStock = document.getElementById('tabla-stock');
             try {
                 if (tablaElementos) {
                 tablaElementos.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">Actualizando inventario...</td></tr>`;
@@ -229,8 +280,12 @@
                 const elementosEnReparacion = elementosGlobal.filter(item => item.estado === 'Reparacion' || (item.cant_reparacion || 0) > 0);
 
                 renderizarTablaActivos(elementosGlobal);
-
                 renderizarTablaReparacion(elementosEnReparacion);
+                renderizarTablaStock(elementosGlobal);
+
+                if (typeof cargarHistorialCompras === 'function') {
+                    cargarHistorialCompras();
+                }
 
             } catch (error) {
                 console.error(error);
@@ -295,7 +350,6 @@
 
         tbody.innerHTML += `
             <tr class="${claseFila}">
-                <td>${item.id || item.id_elemento}</td>
                 <td class="text-center"><strong class="dato">${item.nombre}</strong></td>
                 <td class="text-center"><span class="dato">${item.categoria}</span></td>
                 <td class="text-center"><span class="dato badge bg-success">Disponible</span></td>
@@ -396,6 +450,17 @@ console.log("Elementos recibidos de la API:", lista);
         if (btnSigRep) btnSigRep.disabled = (pagina >= total || total === 0);
     }
 
+    function renderizarTablaStock(lista) {
+    listaStockCompleta = lista
+        const tbody = document.getElementById('tabla-stock');
+        if (!tbody) return;
+    }
+
+    tbody.innerHTML = '';
+    console.log("Elementos recibidos de la API:", lista);
+
+    if (inventa)
+
 function abrirModalReincorporar(id, nombre, maxReparacion) {
     document.getElementById('reinc-id-elemento').value = id;
     document.getElementById('reinc-info-texto').textContent = `Actualmente hay ${maxReparacion} unidad(es) de "${nombre}" en reparación.`;
@@ -408,6 +473,8 @@ function abrirModalReincorporar(id, nombre, maxReparacion) {
     const modal = new bootstrap.Modal(document.getElementById('modalReincorporar'));
     modal.show();
 }
+
+
 
 // Variable temporal para guardar el ID del elemento que se está editando
 // 1. Al hacer clic en el botón de la tabla, guardamos el ID en el input oculto del modal
