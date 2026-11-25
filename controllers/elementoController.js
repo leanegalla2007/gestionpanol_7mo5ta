@@ -52,14 +52,14 @@ createElemento: async (req, res) => {
 updateEstadoElemento: async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, marca, categoria, cantidad_total, motivo, recomendacion, stock_minimo, estado, cant_reparacion = 0, fecha_reparacion, fecha_compra } = req.body;
+        const { nombre, marca, categoria, cantidad_total, motivo, recomendacion_por, stock_minimo, estado, cant_reparacion = 0, fecha_reparacion, fecha_compra } = req.body;
 
         const sql = `
             UPDATE elementos 
-            SET nombre = ?, marca = ?, categoria = ?, cantidad_total = ?, motivo = ?, recomendacion = ? stock_minimo = ?, estado = ?, cant_reparacion = ?, fecha_reparacion = ?, fecha_compra
+            SET nombre = ?, marca = ?, categoria = ?, cantidad_total = ?, motivo = ?, recomendacion_por = ?, stock_minimo = ?, estado = ?, cant_reparacion = ?, fecha_reparacion = ?, fecha_compra = ?
             WHERE id = ?
         `;
-    const parametros = [nombre, marca, categoria, cantidad_total, motivo, recomendacion, stock_minimo, estado, cant_reparacion, fecha_reparacion, fecha_compra, id];
+    const parametros = [nombre, marca, categoria, cantidad_total, motivo, recomendacion_por, stock_minimo, estado, cant_reparacion, fecha_reparacion, fecha_compra, id];
 
     await db.query(sql, parametros);
     
@@ -85,6 +85,121 @@ cambiarAReparacion: async (req, res) => {
         return res.status(200).json({ message: 'Enviado a reparación correctamente' });
     } catch (error) {
         return res.status(500).json({ error: error.message });
+    }
+},
+
+getCompras: async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT * FROM elementos ORDER BY fecha_compra DESC');
+        return res.status(200).json(rows);
+    } catch (error) {
+        console.error("Error al obtener compras:", error);
+        return res.status(500).json({ error: error.message });
+    }
+},
+createCompra: async (req, res) => {
+    const {
+        nombre,
+        marca,
+        categoria,
+        motivo,
+        recomendacion_por,
+        precio,
+        cantidad_total,
+        stock_minimo,
+        cant_reparacion = 0,
+        estado = 'Disponible'
+    } = req.body;
+
+    if (!nombre || !nombre.trim()) {
+        return res.status(400).json({ error: 'El nombre del elemento es obligatorio.' });
+    }
+
+    const nombreLimpio = nombre.trim();
+    const marcaLimpia = (marca && marca.trim()) ? marca.trim() : 'Sin marca';
+    const cantidadComprada = parseInt(cantidad_total, 10) || 0;
+    const stockMin = parseInt(stock_minimo, 10) || 0;
+    const cantRep = parseInt(cant_reparacion, 10) || 0;
+    const precioNum = parseFloat(precio) || 0;
+    const recomendacion = motivo === 'Recomendacion' ? (recomendacion_por || null) : null;
+
+    let elementoId;
+    let conn;
+    try {
+        if (typeof db.getConnection === 'function') {
+            conn = await db.getConnection();
+            await conn.beginTransaction();
+        }
+        const runner = conn || db;
+
+        const [existentes] = await runner.query(
+            'SELECT id, cantidad_total FROM elementos WHERE LOWER(nombre) = LOWER(?) AND LOWER(marca) = LOWER(?) LIMIT 1',
+            [nombreLimpio, marcaLimpia]
+        );
+
+        if (existentes && existentes.length > 0) {
+            elementoId = existentes[0].id;
+            const stockActual = parseInt(existentes[0].cantidad_total, 10) || 0;
+            const nuevoStock = stockActual + cantidadComprada;
+
+            await runner.query(
+                `UPDATE elementos
+                 SET cantidad_total = ?,
+                     stock_minimo = ?,
+                     precio = ?,
+                     motivo = ?,
+                     recomendacion_por = ?,
+                     categoria = COALESCE(?, categoria)
+                 WHERE id = ?`,
+                [
+                    nuevoStock,
+                    stockMin,
+                    precioNum,
+                    motivo || 'Falta de stock',
+                    recomendacion || '-',
+                    categoria || null,
+                    elementoId
+                ]
+            );
+        } else {
+            const [insertElem] = await runner.query(
+                `INSERT INTO elementos
+                    (nombre, marca, categoria, motivo, recomendacion_por, precio, cantidad_total, stock_minimo, cant_reparacion, estado)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    nombreLimpio,
+                    marcaLimpia,
+                    categoria || 'Otros',
+                    motivo || 'Falta de stock',
+                    recomendacion || '-',
+                    precioNum,
+                    cantidadComprada,
+                    stockMin,
+                    cantRep,
+                    estado
+                ]
+            );
+            elementoId = insertElem.insertId;
+        }
+
+        if (conn) {
+            await conn.commit();
+        }
+
+        return res.status(201).json({
+            message: 'Compra registrada y stock actualizado con éxito.',
+            id: elementoId
+        });
+    } catch (error) {
+        if (conn) {
+            try { await conn.rollback(); } catch (_) {}
+        }
+        console.error('Error en createCompra:', error);
+        return res.status(500).json({ error: error.message || 'Error al registrar la compra.' });
+    } finally {
+        if (conn && typeof conn.release === 'function') {
+            conn.release();
+        }
     }
 }
 };

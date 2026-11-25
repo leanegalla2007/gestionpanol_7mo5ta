@@ -22,11 +22,11 @@
                     <button class="nav-link" id="reparaciones-tab" data-bs-toggle="tab" data-bs-target="#reparacion" type="button" role="tab">🛠 En reparacion</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="reparaciones-tab" data-bs-toggle="tab" data-bs-target="#compra" type="button" role="tab">💰 Historial de Compra</button>
+                    <button class="nav-link" id="reparaciones-tab" data-bs-toggle="tab" data-bs-target="#stock"  type="button" role="tab">💰 Historial de Compra</button>
                 </li>
             </ul>
             <div>
-                <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalElemento">Comprar Nuevo Elemento</button>
+                <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#modalElemento" onclick="recomendacion()">Comprar Nuevo Elemento</button>
                 <button type="button" class="btn btn-primary" onclick="cargarInventario()">Actualizar Stock</button>
             </div>
         </div>
@@ -79,31 +79,32 @@
             </div>
         </div>
     </div>
-</div>
-
-<div class="tab-pane fade" id="stock" role="tabpanel" aria-labelledby="stock-tab">
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <thead class="table-success">
-                <tr>
-                    <th>Fecha de compra</th>
-                    <th class="text-center">Elemento</th>
-                    <th class="text-center">Marca</th>
-                    <th class="text-center">Cant. Comprada (unidades)</th>
-                    <th class="text-center">Precio</th>
-                    <th class="text-center">Motivo</th>
-                    <th class="text-center">Recomendado por:</th>
-                </tr>
-            </thead>
-            <tbody id="tabla-stock"></tbody>
-        </table>
-        <div class="d-flex justify-content-between align-items-center mt-3">
-            <button class="btn btn-outline-secondary" id="btn-ant-elem-stock" onclick="cambiarPaginaElementosStock(-1)">Anterior</button>
-                            <span id="info-pagina-stock" class="fw-bold">Página 1 de 1</span>
-            <button class="btn btn-outline-secondary" id="btn-ant-elem-stock" onclick="cambiarPaginaElementosStock(1)">Siguiente</button>
+    
+    <div class="tab-pane fade" id="stock" role="tabpanel" aria-labelledby="stock-tab">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>Fecha de compra</th>
+                        <th class="text-center">Elemento</th>
+                        <th class="text-center">Marca</th>
+                        <th class="text-center">Cant. Comprada (unidades)</th>
+                        <th class="text-center">Precio</th>
+                        <th class="text-center">Motivo</th>
+                        <th class="text-center">Recomendado por:</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-stock"></tbody>
+            </table>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <button class="btn btn-outline-secondary" id="btn-ant-elem-stock" onclick="cambiarPaginaElementosStock(-1)">Anterior</button>
+                                <span id="info-pagina-stock" class="fw-bold">Página 1 de 1</span>
+                <button class="btn btn-outline-secondary" id="btn-sig-elem-stock" onclick="cambiarPaginaElementosStock(1)">Siguiente</button>
+            </div>
         </div>
     </div>
 </div>
+
 
     <div class="modal fade" id="modalElemento" tabindex="-1" aria-labelledby="modalElementoLabel" aria-hidden="true"> 
         <div class="modal-dialog">
@@ -130,6 +131,7 @@
                                 <option value="Útiles">Útiles</option>
                                 <option value="Mapas">Mapas</option>
                                 <option value="Electricidad">Electricidad</option>
+                                <option value="Herramientas">Herramientas</option>
                                 <option value="Otros">Otros</option>
                             </select>
                         </div>
@@ -138,18 +140,19 @@
                             <select id="motivo" class="form-select" required>
                                 <option value="" selected disabled>Seleccionar motivo...</option>
                                 <option value="Falta de Stock">Por falta de stock.</option>
-                                <option value="Recomendacion">Por recomendacion de docente.</option>
+                                <option value="Recomendacion">Por recomendacion por docente.</option>
                             </select>
+                        <div class="mb-3 d-none" id="contenedor-recomendacion">
+                            <label for="recomendacion-docente" class="form-label">Recomendacion de Docente</label>
+                            <select id="recomendacion-docente" class="form-select">
+                                <option value="" selected disabled>Cargando docentes...</option>
+                            </select>
+                            <small class="text-muted">Aparecera siempre que seleccione la opcion "Por recomendacion por docente"</small>
+                        </div>
                         <div class="mb-3">
                             <label for="precio" class="form-label">Precio comprado</label>
                             <input type="number" id="precio" class="form-control" value="1" min="1" required>
                         </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="recomendacion-docente" class="form-label">Recomendacion de Docente</label>
-                            <select id="recomendacion-docente" class="form-select" required>
-                                <option value="" selected disabled>Cargando docentes...</option>
-                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="cantidad_total" class="form-label">Cantidad Inicial</label>
@@ -192,6 +195,7 @@
                                 <option value="Útiles">Útiles</option>
                                 <option value="Mapas">Mapas</option>
                                 <option value="Electricidad">Electricidad</option>
+                                <option value="Herramientas">Herramientas</option>
                                 <option value="Otros">Otros</option>
                             </select>
                         </div>
@@ -248,7 +252,7 @@
             </div>
         </div>
     </div>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
@@ -262,6 +266,7 @@
         const limitePorPagina = 10;
         const API_URL = 'http://localhost:3000/api/elementos';
 
+        
         // 1. FUNCIÓN PARA OBTENER LAS ROWS Y REDIBUJAR LA TABLA ANCHA
         async function cargarInventario() {
             console.log("El botón de actualizar funciona y llamó a la función");
@@ -439,7 +444,7 @@ console.log("Elementos recibidos de la API:", lista);
         paginaActualReparacion += direccion;
         renderizarTablaReparacion (listaReparacionCompleta);
     }
-
+    
     function actualizarControlesPaginacionRep (pagina, total){
         const info = document.getElementById('info-pagina-rep')
         const btnAntRep = document.getElementById('btn-ant-elem-rep')
@@ -449,30 +454,161 @@ console.log("Elementos recibidos de la API:", lista);
         if (btnAntRep) btnAntRep.disabled = (pagina <= 1);
         if (btnSigRep) btnSigRep.disabled = (pagina >= total || total === 0);
     }
+    
+    async function renderizarTablaStock() {
+    const tablaStock = document.getElementById('tabla-stock');
+    tablaStock.innerHTML = `
+    <tr>
+        <td colspan="7" class="text-center text-muted py-4">
+            Cargando registro de compras...
+        </td>
+    </tr>`;
 
-    function renderizarTablaStock(lista) {
-    listaStockCompleta = lista
-        const tbody = document.getElementById('tabla-stock');
-        if (!tbody) return;
+    try {
+        const respuesta = await fetch('/api/compras'); // Ajustá la ruta si usás otro prefijo
+        const compras = await respuesta.json();
+
+        listaStockCompleta = Array.isArray(compras) ? compras : [];
+
+        if (listaStockCompleta === 0) {
+            tablaStock.innerHTML = `
+            <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Todavía no hay compras registradas.
+                    </td>
+                </tr>
+            `;
+            actualizarControlesPaginacionStock(0, 0);
+            return;
+        }
+
+    const totalPaginasStock = Math.max(1, Math.ceil(listaStockCompleta.length / limitePorPagina));
+    if(paginaActualStock > totalPaginasStock) {
+        paginaActualStock = totalPaginasStock;
     }
 
-    tbody.innerHTML = '';
-    console.log("Elementos recibidos de la API:", lista);
-
-    if (inventa)
-
-function abrirModalReincorporar(id, nombre, maxReparacion) {
-    document.getElementById('reinc-id-elemento').value = id;
-    document.getElementById('reinc-info-texto').textContent = `Actualmente hay ${maxReparacion} unidad(es) de "${nombre}" en reparación.`;
+    const inicio = (paginaActualStock - 1) * limitePorPagina;
+    const fin = inicio + limitePorPagina;
+    const paginaItems = listaStockCompleta.slice(inicio, fin);        
+            
+    tablaStock.innerHTML = '';
     
-    const inputCantidad = document.getElementById('reinc-cantidad');
-    inputCantidad.value = maxReparacion; // Sugiere el total por defecto
-    inputCantidad.max = maxReparacion;   // Limita al máximo disponible en reparación
+        paginaItems.forEach((compra) => {
+            const fecha = compra.fecha_compra
+            ? new Date(compra.fecha_compra).toLocaleDateString('es-AR')
+            : '-';
 
-    // Muestra el modal utilizando la API de Bootstrap 5
-    const modal = new bootstrap.Modal(document.getElementById('modalReincorporar'));
-    modal.show();
+            const precio = compra.precio !== undefined && compra.precio !== null
+                ? `$${Number(compra.precio).toLocaleString('es-AR')}`
+                : '-';
+
+            const motivoBadge = compra.motivo === 'Recomendacion'
+            ? `<span class="badge bg-info text-dark">Recomendación docente</span>`
+                : `<span class="badge bg-secondary">Falta de stock</span>`;
+            
+
+            const selectDocente = document.getElementById('recomendacion-docente'); // o el id real de tu <select>
+            let docenteResuelto = compra.recomendacion_docente;
+            
+            if (docenteResuelto && selectDocente) {
+                const opt = Array.from(selectDocente.options).find(
+                    o => String(o.value) === String(docenteResuelto)
+                );
+                if (opt && opt.value) {
+                    // Si el texto es "Nombre Apellido: 3° Año", toma solo "Nombre Apellido"
+                    docenteResuelto = opt.textContent.split(':')[0].trim();
+                }
+            }    
+            const nombreDocente = [
+            compra.docente_nombre,
+            compra.docente_apellido
+        ].filter(Boolean).join(' ').trim();
+        
+        const recomendadoPor = (compra.recomendacion_por && compra.recomendacion_por.trim() && compra.recomendacion_por.trim() !== '-')
+    ? compra.recomendacion_por.trim()
+    : '-';
+        
+        tablaStock.innerHTML += `
+        <tr>
+                    <td>${fecha}</td>
+                    <td class="fw-bold text-center">${compra.nombre}</td>
+                    <td class="text-center">${compra.marca || '-'}</td>
+                    <td class="text-center">${compra.cantidad_total}</td>
+                    <td class="text-end">${precio}</td>
+                    <td class="text-center">${motivoBadge}</td>
+                    <td class="text-center">${recomendadoPor}</td>
+                </tr>
+
+                `;
+            });
+            actualizarControlesPaginacionStock(paginaActualStock, totalPaginasStock);
+            if (typeof actualizarVisibilidadDocente === 'function') {
+                actualizarVisibilidadDocente();
+            }
+        } catch (error) {
+            console.error("Error al renderizar tabla de stock/compras:", error);
+            tablaStock.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-danger py-4">
+                    Error al cargar el historial de compras.
+                </td>
+            </tr>
+        `;
+        actualizarControlesPaginacionStock(0, 0);
+    }
 }
+
+function cambiarPaginaElementosStock(direccion) {
+    const totalPaginasStock = Math.max(1, Math.ceil(listaStockCompleta.length / limitePorPagina));
+    const nuevaPagina = paginaActualStock + direccion;
+
+    if (nuevaPagina >= 1 && nuevaPagina <= totalPaginasStock) {
+        paginaActualStock = nuevaPagina;
+        renderizarTablaStock();
+    }
+}
+
+function actualizarControlesPaginacionStock(paginaActual, totalPaginas){
+    const infoPagina = document.getElementById('info-pagina-stock');
+    const btnAnt = document.getElementById('btn-ant-elem-stock');
+    const btnSig = document.getElementById('btn-sig-elem-stock');
+    if (infoPagina) {
+        infoPagina.textContent = totalPaginas > 0
+        ? `Página ${paginaActual} de ${totalPaginas}`
+        : 'Página 1 de 1';
+    }
+    if(btnAnt) {
+        btnAnt.disabled = totalPaginas <= 1 || paginaActual <= 1;
+    }
+    if(btnSig) {
+        btnSig.disabled = totalPaginas <= 1 || paginaActual >= totalPaginas;
+    }
+}
+
+const selectMotivo = document.getElementById('motivo');
+const contenedorDocente = document.getElementById('contenedor-recomendacion');
+const selectDocente = document.getElementById('recomendacion-docente');
+function actualizarVisibilidadDocente() {
+    if (!selectMotivo || !contenedorDocente || !selectDocente) return;
+
+    if (selectMotivo.value === 'Recomendacion') {
+        contenedorDocente.classList.remove('d-none');
+        selectDocente.required = true;
+    } else {
+        contenedorDocente.classList.add('d-none');
+        selectDocente.required = false;
+        selectDocente.value = '';
+    }
+}
+
+// Escuchar cuando cambia el motivo de compra
+selectMotivo?.addEventListener('change', actualizarVisibilidadDocente);
+
+// Resetear/ocultar al abrir el modal para empezar limpio
+document.getElementById('modalElemento')?.addEventListener('show.bs.modal', () => {
+    selectMotivo.value = '';
+    actualizarVisibilidadDocente();
+});
 
 
 
@@ -519,17 +655,16 @@ async function confirmarReincorporacion() {
         alert("Error: El ID del elemento es nulo o no se guardó al abrir el modal.");
         return;
     }
-
+    
     const elemento = elementosGlobal.find(item => (item.id || item.id_elemento) == id);
     if (!elemento) {
         alert("Error: No se encontró el elemento dentro del array global.");
         return;
     }
-
     const cantEnReparacion = parseInt(elemento.cant_reparacion || elemento.cant_reparaciones) || 0;
     const inputCantidad = document.getElementById('reinc-cantidad').value;
     const cantAReincorporar = parseInt(inputCantidad);
-
+    
     if (isNaN(cantAReincorporar) || cantAReincorporar <= 0) {
         alert("Ingrese una cantidad válida mayor a 0.");
         return;
@@ -539,11 +674,12 @@ async function confirmarReincorporacion() {
         alert(`No puedes reincorporar ${cantAReincorporar} unidades si solo hay ${cantEnReparacion} en reparación.`);
         return;
     }
-
+    
     const nuevaCantReparacion = cantEnReparacion - cantAReincorporar;
     const nuevoEstado = (nuevaCantReparacion === 0) ? 'Disponible' : 'Reparacion';
-
+    
     const FechaActual = new Date().toISOString().slice(0, 19).replace("T", " ");
+    
 
     const datosActualizados = {
         nombre: elemento.nombre,
@@ -554,7 +690,7 @@ async function confirmarReincorporacion() {
         cant_reparacion: nuevaCantReparacion,
         fecha_reparacion: FechaActual
     };
-
+    
     try {
         const respuesta = await fetch(`${API_URL}/${id}`, {
             method: 'PUT',
@@ -566,80 +702,134 @@ async function confirmarReincorporacion() {
             const errorTexto = await respuesta.text();
             throw new Error(`Error backend (${respuesta.status}): ${errorTexto}`);
         }
-
+        
         // Cerramos el modal limpiamente
         const modalEl = document.getElementById('modalReincorporar');
         const modalInstance = bootstrap.Modal.getInstance(modalEl);
         if (modalInstance) modalInstance.hide();
-
+        
         alert(`¡Se reincorporaron ${cantAReincorporar} unidad(es) de "${elemento.nombre}" al stock disponible!`);
         await cargarInventario(); 
-
+        
     } catch (error) {
         console.error("--> Error en CATCH:", error);
         alert(`Error al reincorporar: ${error.message}`);
     }
 }        // 2. LOGICA DEL FORMULARIO DENTRO DEL MODAL
-const formAgregar = document.getElementById('form-elemento'); // Asegúrate que sea el ID de tu <form>
 
+function abrirModalReincorporar(id, nombre, maxReparacion) {
+    document.getElementById('reinc-id-elemento').value = id;
+    document.getElementById('reinc-info-texto').textContent = `Actualmente hay ${maxReparacion} unidad(es) de "${nombre}" en reparación.`;
+    
+    const inputCantidad = document.getElementById('reinc-cantidad');
+    inputCantidad.value = maxReparacion; // Sugiere el total por defecto
+    inputCantidad.max = maxReparacion;   // Limita al máximo disponible en reparación
+
+    // Muestra el modal utilizando la API de Bootstrap 5
+    const modal = new bootstrap.Modal(document.getElementById('modalReincorporar'));
+    modal.show();
+}
+
+const formAgregar = document.getElementById('form-elemento');
 if (formAgregar) {
     formAgregar.addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        const nombreVal = document.getElementById('nombre');
-        const categoriaVal = document.getElementById('categoria')
-        const cantidadVal = parseInt(document.getElementById('cantidad_total').value) || 0;
-        const stockMinVal = parseInt(document.getElementById('stock_minimo').value) || 0;
+        const nombreInput = document.getElementById('nombre');
+        const marcaInput = document.getElementById('marca');
+        const categoriaInput = document.getElementById('categoria');
+        const motivoInput = document.getElementById('motivo');
+        const docenteInput = document.getElementById('recomendacion-docente');
+        const precioInput = document.getElementById('precio');
+        const cantidadInput = document.getElementById('cantidad_total');
+        const stockMinInput = document.getElementById('stock_minimo');
 
-        
+        const nombre = nombreInput ? nombreInput.value.trim() : '';
+        const marca = marcaInput ? marcaInput.value.trim() : '';
+        const categoria = categoriaInput ? categoriaInput.value : '';
+        const motivo = motivoInput ? motivoInput.value : 'Falta de stock';
 
-        if (!nombreVal) {
+        let nombreDocenteSeleccionado = null;
+        if (motivo === 'Recomendacion' && docenteInput && docenteInput.selectedIndex >= 0) {
+            const opcionElegida = docenteInput.options[docenteInput.selectedIndex];
+            const textoOpcion = (opcionElegida.textContent || '').trim();
+            if (opcionElegida.value && textoOpcion) {
+                nombreDocenteSeleccionado = textoOpcion.includes(':')
+                    ? textoOpcion.split(':')[0].trim()
+                    : textoOpcion;
+            }
+        }
+
+        const precio = precioInput ? (parseFloat(precioInput.value) || 0) : 0;
+        const cantidadTotal = cantidadInput ? (parseInt(cantidadInput.value, 10) || 0) : 0;
+        const stockMinimo = stockMinInput ? (parseInt(stockMinInput.value, 10) || 0) : 0;
+
+        if (!nombre) {
             alert("El nombre es obligatorio");
             return;
         }
 
-        const nuevoElemento = {
-            nombre: nombreVal ? nombreVal.value.trim(): '',
-            categoria: categoriaVal ? categoriaVal.value: '',
-            cantidad_total: cantidadVal,
-            stock_minimo: stockMinVal,
+        const nuevaCompra = {
+            nombre,
+            marca: marca || 'Sin marca',
+            categoria,
+            motivo,
+            recomendacion_por: nombreDocenteSeleccionado,
+            precio,
+            cantidad_total: cantidadTotal,
+            stock_minimo: stockMinimo,
             cant_reparacion: 0,
             estado: 'Disponible'
         };
 
         try {
-            console.log("BODY A ENVIAR:", JSON.stringify(nuevoElemento));
-            const respuesta = await fetch(API_URL, {
+            console.log("BODY A ENVIAR:", JSON.stringify(nuevaCompra));
+
+            const respuesta = await fetch('/api/compras', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(nuevoElemento)
+                body: JSON.stringify(nuevaCompra)
             });
 
-            if (!respuesta.ok) throw new Error(await respuesta.text());
-
-            // Cerrar el modal y refrescar la tabla
-            const modalElement = document.getElementById('modalElemento'); // Reemplaza con el ID de tu modal
+            if (!respuesta.ok) {
+                const errorTexto = await respuesta.text();
+                throw new Error(errorTexto);
+            }
+            
+            const modalElement = document.getElementById('modalElemento');
             if (modalElement) {
                 const modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
                 modal.hide();
             }
-
-            formAgregar.reset(); // Limpia los inputs del modal
-            cargarInventario(); // Recarga la lista actualizada
-
+            
+            formAgregar.reset();
+            if (typeof actualizarVisibilidadDocente === 'function') {
+                actualizarVisibilidadDocente();
+            }
+            cargarInventario();
+            
         } catch (error) {
             console.error("Error al guardar:", error);
             alert("No se pudo guardar el elemento.");
         }
     });
-}
+}        
+
+
+if (motivo === 'Recomendacion' && selectDocente && selectDocente.value) {
+    const opcionElegida = selectDocente.options[selectDocente.selectedIndex];
+    const textoOpcion = opcionElegida ? opcionElegida.textContent.trim() : '';
+    // "Nicolas Canadi: 3° Año" -> "Nicolas Canadi"
+    nombreDocenteSeleccionado = textoOpcion.includes(':')
+        ? textoOpcion.split(':')[0].trim()
+        : textoOpcion;
+    }
+    document.getElementById('edit-estado').addEventListener('change', function(){
+        const contenedorReparacion = document.getElementById('contenedor-reparacion');
+        const inputReparacion = document.getElementById('edit-cant_reparacion');
+        const cantTotal = parseInt(document.getElementById('edit-cantidad_total').value) || 0;
         
-        document.getElementById('edit-estado').addEventListener('change', function(){
-            const contenedorReparacion = document.getElementById('contenedor-reparacion');
-            const inputReparacion = document.getElementById('edit-cant_reparacion');
-            const cantTotal = parseInt(document.getElementById('edit-cantidad_total').value) || 0;
-    
-            if (this.value === 'Reparacion') {
+        if (this.value === 'Reparacion') {
                 contenedorReparacion.classList.remove('d-none');
                 inputReparacion.max = cantTotal;
                 if (parseInt(inputReparacion.value) > cantTotal) {
@@ -651,8 +841,25 @@ if (formAgregar) {
             }
         });
         
+        async function recomendacion() {
+            const selectDocente = document.getElementById('recomendacion-docente');
+            if (!selectDocente) return;
+        
+            try {
+                const resDoc = await fetch('http://localhost:3000/api/docentes');
+                const docentes = await resDoc.json();
+                selectDocente.innerHTML = '<option value="" selected disabled>Seleccioná el docente...</option>';
+                docentes.forEach(d => {
+                    selectDocente.innerHTML += `<option value="${d.id}">${d.nombre} ${d.apellido}: ${d.anio_curso}° Año</option>`;
+                });
+            } catch (err) {
+                console.error(err);
+                alert('Error al cargar la lista de docentes');
+            }
+        }
+
     function ModaleditarInventario(id) {
-    const item = elementosGlobal.find(el => (el.id || el.id_elemento) == id);
+            const item = elementosGlobal.find(el => (el.id || el.id_elemento) == id);
 
     if (!item) {
         console.error("No se encontró el elemento en la lista local con ID:", id);
